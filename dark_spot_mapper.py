@@ -1,7 +1,18 @@
-# This software is for controlling the Dark Spot Mapper
-# of the Optoelectronics Research Centre of Tampere University of Technology
+"""
+This software is for controlling the Dark Spot Mapper
+of the Optoelectronics Research Centre of Tampere University of Technology
 
-# Copyright 2016 - 2017 Mika Mäki & Tampere University of Technology
+Copyright 2016 - 2017 Mika Mäki & Tampere University of Technology
+
+Requires
+- PyQtGraph
+- Matplotlib
+- Numpy
+- NI IMAQdx
+- Pynivision
+- Granite Devices SimpleMotion DLL (bitness must match that of Python)
+- ImageMagick
+"""
 
 # GUI
 import tkinter
@@ -29,6 +40,9 @@ import simplemotion
 
 
 class QtDisp:
+    """
+    This class provides a window for the camera video
+    """
     def __init__(self, camera, autolevels):
         self.camera = camera
 
@@ -44,7 +58,7 @@ class QtDisp:
         win.show()
 
         # This line prevents a bug at image leveling
-        self.imv.setLevels(0.1,0.9)
+        self.imv.setLevels(0.1, 0.9)
 
         self.takeframe()
 
@@ -67,6 +81,9 @@ class QtDisp:
 
 
 class DSM:
+    """
+    This is the primary class of the Dark Spot Mapper
+    """
     def __init__(self):
         print("Starting")
 
@@ -133,59 +150,82 @@ class DSM:
         self.__zdownButton = tkinter.Button(self.__mainWindow, text="-", command=self.zdown)
         self.__zdownButton.grid(row=1, column=3)
 
-        # Picture elements
+        self.__use_mmVar = tkinter.BooleanVar()
+        self.__use_mmVar.set(False)
+
+        self.__stepsButton = tkinter.Radiobutton(self.__mainWindow, text="Steps", variable=self.__use_mmVar,
+                                                 value=False)
+        self.__stepsButton.grid(row=0, column=4, sticky="W")
+
+        self.__mmButton = tkinter.Radiobutton(self.__mainWindow, text="mm", variable=self.__use_mmVar,
+                                              value=True)
+        self.__mmButton.grid(row=1, column=4, sticky="W")
 
         self.__stepVar = tkinter.StringVar()
         self.__stepEntry = tkinter.Entry(self.__mainWindow, textvariable=self.__stepVar)
         self.__stepVar.set("18000")
-        self.__stepEntry.grid(row=0, column=4)
+        self.__stepEntry.grid(row=0, column=5)
+
+        self.__mmVar = tkinter.StringVar()
+        self.__mmEntry = tkinter.Entry(self.__mainWindow, textvariable=self.__mmVar)
+        self.__mmVar.set("1")
+        self.__mmEntry.grid(row=1, column=5)
+
+        # Picture elements
 
         self.__picVar = tkinter.StringVar()
         self.__picEntry = tkinter.Entry(self.__mainWindow, textvariable=self.__picVar)
         self.__picVar.set("PicName")
-        self.__picEntry.grid(row=1, column=4)
+        self.__picEntry.grid(row=0, column=6)
 
         self.__picButton = tkinter.Button(self.__mainWindow, text="Take picture", command=self.takepic)
-        self.__picButton.grid(row=2, column=4)
+        self.__picButton.grid(row=1, column=6)
 
         self.__folderButton = tkinter.Button(self.__mainWindow, text="Set folder", command=self.choosedir)
-        self.__folderButton.grid(row=3, column=4)
+        self.__folderButton.grid(row=2, column=6)
 
         # Elements for measurement
 
-        self.__chipVar = tkinter.StringVar()
-        self.__chipEntry = tkinter.Entry(self.__mainWindow, textvariable=self.__chipVar)
-        self.__chipVar.set("Chip_Material")
-        self.__chipEntry.grid(row=0, column=5)
+        self.__sampleVar = tkinter.StringVar()
+        self.__sampleEntry = tkinter.Entry(self.__mainWindow, textvariable=self.__sampleVar)
+        self.__sampleVar.set("Sample_ID")
+        self.__sampleEntry.grid(row=3, column=6)
 
-        self.__measureButton = tkinter.Button(self.__mainWindow, text="Measure Chip", command=self.measurechip)
-        self.__measureButton.grid(row=1, column=5)
+        self.__chipButton = tkinter.Button(self.__mainWindow, text="Measure Chip", command=self.measure_chip)
+        self.__chipButton.grid(row=4, column=6)
+
+        self.__waferButton = tkinter.Button(self.__mainWindow, text="Measure Wafer", command=self.measure_wafer)
+        self.__waferButton.grid(row=5, column=6)
+
+        cameracolumn = 7
 
         # Elements for Qt
 
         camrangelabel = tkinter.Label(self.__mainWindow, text="Camera autorange")
-        camrangelabel.grid(row=0, column=6)
+        camrangelabel.grid(row=0, column=cameracolumn)
 
         self.__camRangeVar = tkinter.BooleanVar()
         self.__camRangeVar.set(False)
 
-        self.__camRangeOnButton = tkinter.Radiobutton(self.__mainWindow, text="on", variable=self.__camRangeVar, value=True)
-        self.__camRangeOnButton.grid(row=1, column=6)
+        self.__camRangeOnButton = tkinter.Radiobutton(self.__mainWindow, text="on", variable=self.__camRangeVar,
+                                                      value=True)
+        self.__camRangeOnButton.grid(row=1, column=cameracolumn)
 
-        self.__camRangeOffButton = tkinter.Radiobutton(self.__mainWindow, text="off", variable=self.__camRangeVar, value=False)
-        self.__camRangeOffButton.grid(row=2, column=6)
+        self.__camRangeOffButton = tkinter.Radiobutton(self.__mainWindow, text="off", variable=self.__camRangeVar,
+                                                       value=False)
+        self.__camRangeOffButton.grid(row=2, column=cameracolumn)
 
         self.__qtRestartButton = tkinter.Button(self.__mainWindow, text="Restart View", command=self.qt_restart)
-        self.__qtRestartButton.grid(row=3, column=6)
+        self.__qtRestartButton.grid(row=3, column=cameracolumn)
 
         self.__debugButton = tkinter.Button(self.__mainWindow, text="Debug", command=self.debug)
-        self.__debugButton.grid(row=4, column=6)
+        self.__debugButton.grid(row=4, column=cameracolumn)
 
         # Elements for camera settings
 
         for index, text in enumerate(camlabeltexts):
             label = tkinter.Label(self.__mainWindow, text=text)
-            label.grid(row=index, column=7)
+            label.grid(row=index, column=cameracolumn+1)
 
         self.__camVars = []
 
@@ -193,18 +233,18 @@ class DSM:
             self.__camVars.append(tkinter.StringVar())
             self.__camVars[index].set(str(camdefaultsettings[index]))
             entry = tkinter.Entry(self.__mainWindow, textvariable=self.__camVars[index])
-            entry.grid(row=index, column=8)
+            entry.grid(row=index, column=cameracolumn+2)
 
         self.setcamsettings()
 
         self.__camSetButton = tkinter.Button(self.__mainWindow, text="Set values", command=self.setcamsettings)
-        self.__camSetButton.grid(row=len(camlabeltexts), column=8)
+        self.__camSetButton.grid(row=len(camlabeltexts), column=cameracolumn+2)
 
         camlimits = ["256-1023", "0-2047", "0-680", "0-3", "0-7", "3-1150"]
 
         for index, text in enumerate(camlimits):
             label = tkinter.Label(self.__mainWindow, text=text)
-            label.grid(row=index, column=9)
+            label.grid(row=index, column=cameracolumn+3)
 
         # self.__creatorText = tkinter.Label(self.__mainWindow, text="Created by Mika Mäki, work in progress")
         # self.__creatorText.grid(row=3, columnspan=3)
@@ -213,7 +253,8 @@ class DSM:
         self.infotext("")
         self.__mainWindow.mainloop()
 
-    def debug(self):
+    @staticmethod
+    def debug():
         print(gc.get_stats())
         print(gc.garbage)
         print(objgraph.show_most_common_types())
@@ -228,12 +269,14 @@ class DSM:
             self.infotext("Camera configuration failed")
 
     def takepic(self):
-        self.infotext(self.camera.takepic(self.__picVar.get(), self.__currentdir))
+        self.camera.takepic(self.__picVar.get(), self.__currentdir)
 
     def takepic_chip(self, chipname, chippath, number):
-        self.camera.takepic_chip(chipname, chippath, number, self.__timestring)
+        filename = chipname + "_" + self.__timestring + "_" + str(number)
+        self.camera.takepic(filename, chippath)
 
-    def timestringfunc(self):
+    @staticmethod
+    def timestringfunc():
         year = str(time.localtime().tm_year)
         mon = str(time.localtime().tm_mon)
         if len(mon) == 1:
@@ -260,31 +303,49 @@ class DSM:
             self.infotext("Current folder set to: " + self.__currentdir)
 
     def up(self):
-        self.stages.step_up(int(self.__stepVar.get()))
+        if self.__use_mmVar.get():
+            self.stages.mm_up(float(self.__mmVar.get()))
+        else:
+            self.stages.step_up(int(self.__stepVar.get()))
 
     def down(self):
-        self.stages.step_down(int(self.__stepVar.get()))
+        if self.__use_mmVar.get():
+            self.stages.mm_down(float(self.__mmVar.get()))
+        else:
+            self.stages.step_down(int(self.__stepVar.get()))
 
     def left(self):
-        self.stages.step_left(int(self.__stepVar.get()))
+        if self.__use_mmVar.get():
+            self.stages.mm_left(float(self.__mmVar.get()))
+        else:
+            self.stages.step_left(int(self.__stepVar.get()))
 
     def right(self):
-        self.stages.step_right(int(self.__stepVar.get()))
+        if self.__use_mmVar.get():
+            self.stages.mm_right(float(self.__mmVar.get()))
+        else:
+            self.stages.step_right(int(self.__stepVar.get()))
 
     def zup(self):
-        self.stages.step_zup(int(self.__stepVar.get()))
+        if self.__use_mmVar.get():
+            self.infotext("Z axis doesn't support mm")
+        else:
+            self.stages.step_zup(int(self.__stepVar.get()))
 
     def zdown(self):
-        self.stages.step_zdown(int(self.__stepVar.get()))
+        if self.__use_mmVar.get():
+            self.infotext("Z axis doesn't support mm")
+        else:
+            self.stages.step_zdown(int(self.__stepVar.get()))
 
-    def measurechip(self):
+    def measure_chip(self):
         if self.__currentdir == "":
             self.infotext("The current directory has not been set")
             return 1
 
         mstep = 36000
         sleeptime = 1
-        chipname = self.__chipVar.get()
+        chipname = self.__sampleVar.get()
 
         chippath = self.__currentdir + "/" + chipname + "_" + self.__timestring
         # print(chippath)
@@ -337,9 +398,8 @@ class DSM:
         self.stages.step_up(2*mstep)
         self.stages.step_left(mstep)
 
-        # For non-rotated image
         # Stitch the images
-        cmdstr = "magick convert bg.png "
+        cmdstr = "magick convert background_3x3.png "
         cmdstr += chippath + "/*1.png -gravity Northwest -geometry +0+0 -composite "
         cmdstr += chippath + "/*2.png -geometry +760+0 -composite "
         cmdstr += chippath + "/*3.png -geometry +1520+0 -composite "
@@ -355,7 +415,7 @@ class DSM:
         """
         # For non-rotated image
         # Stitch the images
-        cmdstr = "magick convert bg.png "
+        cmdstr = "magick convert background_3x3.png "
         cmdstr += chippath + "/*9.png -gravity Northwest -geometry +0+0 -composite "
         cmdstr += chippath + "/*8.png -geometry +760+0 -composite "
         cmdstr += chippath + "/*7.png -geometry +1520+0 -composite "
@@ -370,6 +430,127 @@ class DSM:
         """
 
         self.infotext("Stitch ready")
+
+    def measure_9(self, directory, basename, stitchname):
+        mstep = 36000
+        sleeptime = 1
+
+        self.infotext("Measuring " + stitchname)
+        print("Measuring", stitchname)
+        os.makedirs(directory)
+
+        self.stages.step_left(mstep)
+        self.stages.step_up(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_1", directory)
+
+        self.stages.step_right(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_2", directory)
+
+        self.stages.step_right(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_3", directory)
+
+        self.stages.step_down(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_4", directory)
+
+        self.stages.step_left(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_5", directory)
+
+        self.stages.step_left(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_6", directory)
+
+        self.stages.step_down(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_7", directory)
+
+        self.stages.step_right(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_8", directory)
+
+        self.stages.step_right(mstep)
+        time.sleep(sleeptime)
+        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_9", directory)
+
+        self.stages.step_left(mstep)
+        self.stages.step_up(mstep)
+
+        cmdstr = "magick convert background_3x3.png "
+        cmdstr += directory + "/*1.png -gravity Northwest -geometry +0+0 -composite "
+        cmdstr += directory + "/*2.png -geometry +760+0 -composite "
+        cmdstr += directory + "/*3.png -geometry +1520+0 -composite "
+        cmdstr += directory + "/*6.png -geometry +0+760 -composite "
+        cmdstr += directory + "/*5.png -geometry +760+760 -composite "
+        cmdstr += directory + "/*4.png -geometry +1520+760 -composite "
+        cmdstr += directory + "/*7.png -geometry +0+1520 -composite "
+        cmdstr += directory + "/*8.png -geometry +760+1520 -composite "
+        cmdstr += directory + "/*9.png -geometry +1520+1520 -composite "
+        cmdstr += directory + "/" + basename + "_" + self.__timestring + "_" + stitchname + "_stitch.png"
+        os.system(cmdstr)
+
+    def measure_wafer(self):
+        if self.__currentdir == "":
+            self.infotext("The current directory has not been set")
+            return 1
+
+        wafername = self.__sampleEntry.get()
+        waferpath = self.__currentdir + "/" + wafername + "_" + self.__timestring
+        sleeptime = 5
+
+        if os.path.exists(waferpath):
+            self.infotext("The chip directory already exists")
+            return 1
+
+        self.infotext("Measuring chip")
+
+        os.makedirs(waferpath)
+
+        self.stages.mm_up(5)
+        time.sleep(sleeptime)
+        self.measure_9(waferpath + "/00x-20", wafername, "00x-20")
+
+        self.stages.mm_up(10)
+        time.sleep(sleeptime)
+        self.measure_9(waferpath + "/00x-10", wafername, "00x-10")
+
+        self.stages.mm_up(10)
+        time.sleep(sleeptime)
+        self.measure_9(waferpath + "/00x00", wafername, "00x00")
+
+        self.stages.mm_up(10)
+        time.sleep(sleeptime)
+        self.measure_9(waferpath + "/00x10", wafername, "00x10")
+
+        self.stages.mm_up(10)
+        time.sleep(sleeptime)
+        self.measure_9(waferpath + "/00x20", wafername, "00x20")
+
+        self.stages.mm_down(20)
+        self.stages.mm_left(20)
+        time.sleep(3*sleeptime)
+        self.measure_9(waferpath + "/-20x00", wafername, "-20x00")
+
+        self.stages.mm_right(10)
+        time.sleep(sleeptime)
+        self.measure_9(waferpath + "/-10x00", wafername, "-10x00")
+
+        self.stages.mm_right(20)
+        time.sleep(2*sleeptime)
+        self.measure_9(waferpath + "/10x00", wafername, "10x00")
+
+        self.stages.mm_right(10)
+        time.sleep(sleeptime)
+        self.measure_9(waferpath + "/20x00", wafername, "20x00")
+
+        self.stages.mm_left(20)
+        self.stages.mm_down(25)
+
+        self.infotext("Wafer ready")
+        print("Wafer ready")
 
 
 def main():
