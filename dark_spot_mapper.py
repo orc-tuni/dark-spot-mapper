@@ -3,26 +3,19 @@
 
 # Copyright 2016 - 2017 Mika Mäki & Tampere University of Technology
 
-# C++ DLL support for SimpleMotion
-import ctypes
-
-# Camera support
-import nivision
-
 # GUI
 import tkinter
 import tkinter.filedialog
 
 # Basic libraries
 import time
-import atexit
 import os.path
 import threading
 
 # Graphing
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
-import PIL.Image
+# import PIL.Image
 import matplotlib.image
 import numpy as np
 
@@ -30,10 +23,14 @@ import numpy as np
 import gc
 import objgraph
 
+# Program modules
+import ni_camera
+import simplemotion
+
 
 class QtDisp:
-    def __init__(self,camid, autolevels):
-        self.__camid = camid
+    def __init__(self, camera, autolevels):
+        self.camera = camera
 
         self.__autolevels = autolevels
 
@@ -49,34 +46,24 @@ class QtDisp:
         # This line prevents a bug at image leveling
         self.imv.setLevels(0.1,0.9)
 
-        self.takepic()
+        self.takeframe()
 
         timer = QtCore.QTimer()
-        timer.timeout.connect(self.takepic)
+        timer.timeout.connect(self.takeframe)
         timer.start(50)
 
         app.exec()
 
-    def takepic(self):
-        img = nivision.imaqCreateImage(nivision.IMAQ_IMAGE_U8)
-        nivision.IMAQdxGrab(self.__camid, img, 0)
+    def takeframe(self):
+        self.camera.takeframe()
 
-        # This does not work due to a memory leak at nivision.imaqImageToArray()
-        # imgdata = nivision.imaqImageToArray(img)
-        # imgbytes = imgdata[0]
-        # pilimg = PIL.Image.frombytes("L", (1280, 960), imgbytes)
-        # matimg = matplotlib.image.pil_to_array(img)
-
-        # Using ramdisk is an ugly hack but it works
-        nivision.imaqWritePNGFile(img, b"R:\\nivisiontemp.png", 10000)
         matimg = matplotlib.image.imread("R:\\nivisiontemp.png")
-
         transposed = np.transpose(matimg)
 
         if self.__autolevels:
             self.imv.setImage(transposed, autoLevels=True)
         else:
-            self.imv.setImage(transposed, levels=(0,1))
+            self.imv.setImage(transposed, levels=(0, 1))
 
 
 class DSM:
@@ -90,55 +77,29 @@ class DSM:
         self.__currentdir = ""
         self.__timestring = self.timestringfunc()
 
-        # Ensuring that the camera is closed after use
-        atexit.register(self.closecamera)
-
         # Camera variables
         self.__camname = b"cam0"
         self.__camquality = 10000
         camlabeltexts = ["Auto Exposure", "Brightness", "Gain", "Gamma", "Sharpness", "Shutter"]
         camdefaultsettings = [256, 1500, 0, 0, 4, 230]
 
-        # Device names for TTL adapters
-        self.__axis1 = b"TTL232R"
-        self.__axis2 = b"TTL232R2"
-        self.__axis3 = b"TTL232R3"
-
-        # Loading the SimpleMotion library
+        # Stage setup
         try:
-            self.__smdll = ctypes.cdll.LoadLibrary("SimpleMotion64")
-            print("Detected SimpleMotion version: " + str(self.__smdll.smGetVersion()))
-        except:
-            print("Loading of SimpleMotion library failed")
+            self.stages = simplemotion.SimpleMotion()
+        except IOError:
+            print("Stage setup failed")
             exit()
 
-        # Testing connection to motor drivers
+        # Camera setup
         try:
-            a1err = self.__smdll.smCommand(self.__axis1, b"TESTCOMMUNICATION", 0)
-            a2err = self.__smdll.smCommand(self.__axis2, b"TESTCOMMUNICATION", 0)
-            a3err = self.__smdll.smCommand(self.__axis3, b"TESTCOMMUNICATION", 0)
-            if a1err != 0 or a2err != 0 or a3err != 0:
-                print("Connecting to motor drivers returned codes: " + str(a1err) + " " + str(a2err) + " " + str(a3err))
-                raise IOError
-        except:
-            print("Could not connect to motor drivers")
-            exit()
-
-        # Opening camera using NI vision
-        try:
-            print("Opening camera. This may take a while.")
-            self.__camid = nivision.IMAQdxOpenCamera(self.__camname, nivision.IMAQdxCameraControlModeController)
-            # self.__camid = nivision.IMAQdxOpenCamera(self.__camname, nivision.IMAQdxCameraControlModeListener)
-            #  nivision.IMAQdxConfigureAcquisition(self.__camid, 1, 1)
-            nivision.IMAQdxConfigureGrab(self.__camid)
-            self.__rawimg = nivision.imaqCreateImage(nivision.IMAQ_IMAGE_U8)
-        except:
-            print("Could not connect to camera")
+            self.camera = ni_camera.NI_Camera(self.__camname, self.__camquality)
+        except IOError:
+            print("Camera setup failed")
             exit()
 
         # Qt thread & window
 
-        self.qt_thread = threading.Thread(target=QtDisp, args=(self.__camid, False))
+        self.qt_thread = threading.Thread(target=QtDisp, args=(self.camera, False))
         self.qt_thread.start()
 
         # UI creation
@@ -260,47 +221,17 @@ class DSM:
     def infotext(self, text):
         self.__infoVar.set(text)
 
-    def closecamera(self):
-        try:
-            print("Closing camera")
-            nivision.IMAQdxCloseCamera(self.__camid)
-        except:
-            print("Closing camera failed")
-
     def setcamsettings(self):
-        try:
-            camsettingtexts = ["AutoExposure", "Brightness", "Gain", "Gamma", "Sharpness", "Shutter"]
-
-            for index, var in enumerate(self.__camVars):
-                value = int(var.get())
-                string = "CameraAttributes::" + camsettingtexts[index] + "::Value"
-                nivision.IMAQdxSetAttribute(self.__camid, string.encode("ascii"), value)
-
+        if self.camera.setcamsettings(self.__camVars):
             self.infotext("Camera configuration successful")
-        except:
+        else:
             self.infotext("Camera configuration failed")
 
     def takepic(self):
-        try:
-            filename = self.__picVar.get()
-            if self.__currentdir == "" or filename == "":
-                self.infotext("Directory is not set")
-                return
-
-            nivision.IMAQdxGrab(self.__camid, self.__rawimg, 1)
-            # The number is somehow related to image quality and bigger is better
-            filepath = self.__currentdir + "/" + filename + ".png"
-            # print(filepath)
-            nivision.imaqWritePNGFile(self.__rawimg, filepath.encode("ascii"), self.__camquality)
-
-            self.infotext("Picture successful")
-        except:
-            self.infotext("Picture failed")
+        self.infotext(self.camera.takepic(self.__picVar.get(), self.__currentdir))
 
     def takepic_chip(self, chipname, chippath, number):
-        nivision.IMAQdxGrab(self.__camid, self.__rawimg, 1)
-        filepath = chippath + "/" + chipname + "_" + self.__timestring + "_" + str(number) + ".png"
-        nivision.imaqWritePNGFile(self.__rawimg, filepath.encode("ascii"), self.__camquality)
+        self.camera.takepic_chip(chipname, chippath, number, self.__timestring)
 
     def timestringfunc(self):
         year = str(time.localtime().tm_year)
@@ -317,7 +248,7 @@ class DSM:
     def qt_restart(self):
         if not self.qt_thread.is_alive():
             autorange = self.__camRangeVar.get()
-            self.qt_thread = threading.Thread(target=QtDisp, args=(self.__camid, autorange))
+            self.qt_thread = threading.Thread(target=QtDisp, args=(self.camera, autorange))
             self.qt_thread.start()
 
     def choosedir(self):
@@ -328,36 +259,30 @@ class DSM:
             self.__currentdir = newdir
             self.infotext("Current folder set to: " + self.__currentdir)
 
-    def moveinc(self, axis, steps):
-        if abs(steps) > 32760:
-            self.infotext("Too many steps")
-            return
-        self.__smdll.smCommand(axis, b"INCTARGET", steps)
-
     def up(self):
-        self.moveinc(self.__axis2, - int(self.__stepVar.get()))
+        self.stages.step_up(int(self.__stepVar.get()))
 
     def down(self):
-        self.moveinc(self.__axis2, int(self.__stepVar.get()))
+        self.stages.step_down(int(self.__stepVar.get()))
 
     def left(self):
-        self.moveinc(self.__axis1, - int(self.__stepVar.get()))
+        self.stages.step_left(int(self.__stepVar.get()))
 
     def right(self):
-        self.moveinc(self.__axis1, int(self.__stepVar.get()))
+        self.stages.step_right(int(self.__stepVar.get()))
 
     def zup(self):
-        self.moveinc(self.__axis3, int(self.__stepVar.get()))
+        self.stages.step_zup(int(self.__stepVar.get()))
 
     def zdown(self):
-        self.moveinc(self.__axis3, - int(self.__stepVar.get()))
+        self.stages.step_zdown(int(self.__stepVar.get()))
 
     def measurechip(self):
         if self.__currentdir == "":
             self.infotext("The current directory has not been set")
             return 1
 
-        mstep = 18000
+        mstep = 36000
         sleeptime = 1
         chipname = self.__chipVar.get()
 
@@ -372,51 +297,63 @@ class DSM:
 
         os.makedirs(chippath)
 
-        self.moveinc(self.__axis1, mstep)
-        self.moveinc(self.__axis1, mstep)
+        self.stages.step_left(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 1)
 
-        self.moveinc(self.__axis1, - mstep)
-        self.moveinc(self.__axis1, - mstep)
+        self.stages.step_right(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 2)
 
-        self.moveinc(self.__axis1, - mstep)
-        self.moveinc(self.__axis1, - mstep)
+        self.stages.step_right(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 3)
 
-        self.moveinc(self.__axis2, - mstep)
-        self.moveinc(self.__axis2, - mstep)
+        self.stages.step_down(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 4)
 
-        self.moveinc(self.__axis1, mstep)
-        self.moveinc(self.__axis1, mstep)
+        self.stages.step_left(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 5)
 
-        self.moveinc(self.__axis1, mstep)
-        self.moveinc(self.__axis1, mstep)
+        self.stages.step_left(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 6)
 
-        self.moveinc(self.__axis2, - mstep)
-        self.moveinc(self.__axis2, - mstep)
+        self.stages.step_down(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 7)
 
-        self.moveinc(self.__axis1, - mstep)
-        self.moveinc(self.__axis1, - mstep)
+        self.stages.step_right(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 8)
 
-        self.moveinc(self.__axis1, - mstep)
-        self.moveinc(self.__axis1, - mstep)
+        self.stages.step_right(mstep)
         time.sleep(sleeptime)
         self.takepic_chip(chipname, chippath, 9)
 
+        # Return to the previous position
+        self.stages.step_up(2*mstep)
+        self.stages.step_left(mstep)
+
+        # For non-rotated image
+        # Stitch the images
+        cmdstr = "magick convert bg.png "
+        cmdstr += chippath + "/*1.png -gravity Northwest -geometry +0+0 -composite "
+        cmdstr += chippath + "/*2.png -geometry +760+0 -composite "
+        cmdstr += chippath + "/*3.png -geometry +1520+0 -composite "
+        cmdstr += chippath + "/*6.png -geometry +0+760 -composite "
+        cmdstr += chippath + "/*5.png -geometry +760+760 -composite "
+        cmdstr += chippath + "/*4.png -geometry +1520+760 -composite "
+        cmdstr += chippath + "/*7.png -geometry +0+1520 -composite "
+        cmdstr += chippath + "/*8.png -geometry +760+1520 -composite "
+        cmdstr += chippath + "/*9.png -geometry +1520+1520 -composite "
+        cmdstr += chippath + "/" + chipname + "_" + self.__timestring + "_stitch.png"
+        os.system(cmdstr)
+
+        """
+        # For non-rotated image
         # Stitch the images
         cmdstr = "magick convert bg.png "
         cmdstr += chippath + "/*9.png -gravity Northwest -geometry +0+0 -composite "
@@ -430,6 +367,7 @@ class DSM:
         cmdstr += chippath + "/*1.png -geometry +1520+1520 -composite "
         cmdstr += chippath + "/" + chipname + "_" + self.__timestring + "_stitch.png"
         os.system(cmdstr)
+        """
 
         self.infotext("Stitch ready")
 
