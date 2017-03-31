@@ -2,6 +2,8 @@
 # ORC Dark Spot Mapper
 
 # Copyright 2016 - 2017 Mika Mäki & Tampere University of Technology
+# Mika would like to license this program with GPLv3+ but it would require some university bureaucracy
+
 
 # Basic libraries
 import atexit
@@ -25,12 +27,13 @@ class NI_Camera:
         try:
             self.__camid = nivision.IMAQdxOpenCamera(self.__camname, nivision.IMAQdxCameraControlModeController)
             # self.__camid = nivision.IMAQdxOpenCamera(self.__camname, nivision.IMAQdxCameraControlModeListener)
-            #  nivision.IMAQdxConfigureAcquisition(self.__camid, 1, 1)
+            # nivision.IMAQdxConfigureAcquisition(self.__camid, 1, 1)
             nivision.IMAQdxConfigureGrab(self.__camid)
         except (nivision.ImaqError, nivision.ImaqDxError):
             print("Camera setup failed")
             raise IOError
 
+        # Initialise image objects
         self.__img_frame = nivision.imaqCreateImage(nivision.IMAQ_IMAGE_U8)
         self.__img_frame_flipped = nivision.imaqCreateImage(nivision.IMAQ_IMAGE_U8)
         self.__img_frame_flipped2 = nivision.imaqCreateImage(nivision.IMAQ_IMAGE_U8)
@@ -82,7 +85,9 @@ class NI_Camera:
         # pilimg = PIL.Image.frombytes("L", (1280, 960), imgbytes)
         # matimg = matplotlib.image.pil_to_array(img)
 
-        # Using ramdisk is an ugly hack but it works
+        # The image is saved on a RAM disk since the transfer of the image from NI Vision to Python as shown above
+        # would result in a memory leak
+        # The RAM disk is not provided by this program and thereby has to be set up separately
         nivision.imaqWritePNGFile(self.__img_frame_flipped2, b"R:\\nivisiontemp.png", self.__camquality)
 
     def takepic(self, filename, directory):
