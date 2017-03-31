@@ -93,6 +93,7 @@ class DSM:
 
         self.__currentdir = ""
         self.__timestring = self.timestringfunc()
+        self.__measuring = False
 
         # Camera variables
         self.__camname = b"cam0"
@@ -128,7 +129,11 @@ class DSM:
         self.__infoVar = tkinter.StringVar()
 
         infolabel = tkinter.Label(self.__mainWindow, textvar=self.__infoVar)
-        infolabel.grid(row=6, columnspan=6)
+        infolabel.grid(row=5, columnspan=6)
+
+        self.__measuringTextVar = tkinter.StringVar()
+        measuring_label = tkinter.Label(self.__mainWindow, textvar=self.__measuringTextVar)
+        measuring_label.grid(row=6, columnspan=6)
 
         # Navigation elements
 
@@ -191,10 +196,10 @@ class DSM:
         self.__sampleVar.set("Sample_ID")
         self.__sampleEntry.grid(row=3, column=6)
 
-        self.__chipButton = tkinter.Button(self.__mainWindow, text="Measure Chip", command=self.measure_chip)
+        self.__chipButton = tkinter.Button(self.__mainWindow, text="Measure Chip", command=self.measure_chip_threaded)
         self.__chipButton.grid(row=4, column=6)
 
-        self.__waferButton = tkinter.Button(self.__mainWindow, text="Measure Wafer", command=self.measure_wafer)
+        self.__waferButton = tkinter.Button(self.__mainWindow, text="Measure Wafer", command=self.measure_wafer_threaded)
         self.__waferButton.grid(row=5, column=6)
 
         cameracolumn = 7
@@ -338,6 +343,21 @@ class DSM:
         else:
             self.stages.step_zdown(int(self.__stepVar.get()))
 
+    def set_measuring(self, status):
+        if status:
+            self.__measuring = True
+            self.__measuringTextVar.set("MEASURING")
+        else:
+            self.__measuring = False
+            self.__measuringTextVar.set("")
+
+    def measure_chip_threaded(self):
+        if self.__measuring:
+            self.infotext("Measurement already running")
+        else:
+            thread = threading.Thread(target=self.measure_chip)
+            thread.start()
+
     def measure_chip(self):
         if self.__currentdir == "":
             self.infotext("The current directory has not been set")
@@ -355,6 +375,7 @@ class DSM:
             return 1
 
         self.infotext("Measuring chip")
+        self.set_measuring(True)
 
         os.makedirs(chippath)
 
@@ -430,6 +451,7 @@ class DSM:
         """
 
         self.infotext("Stitch ready")
+        self.set_measuring(False)
 
     def measure_9(self, directory, basename, stitchname):
         mstep = 36000
@@ -478,7 +500,12 @@ class DSM:
 
         self.stages.step_left(mstep)
         self.stages.step_up(mstep)
+        time.sleep(sleeptime)
 
+        stitch_thread = threading.Thread(target=self.stitch_9, args=(directory, basename, stitchname))
+        stitch_thread.start()
+
+    def stitch_9(self, directory, basename, stitchname):
         cmdstr = "magick convert background_3x3.png "
         cmdstr += directory + "/*1.png -gravity Northwest -geometry +0+0 -composite "
         cmdstr += directory + "/*2.png -geometry +760+0 -composite "
@@ -491,6 +518,14 @@ class DSM:
         cmdstr += directory + "/*9.png -geometry +1520+1520 -composite "
         cmdstr += directory + "/" + basename + "_" + self.__timestring + "_" + stitchname + "_stitch.png"
         os.system(cmdstr)
+        print("Stitch", stitchname, "ready")
+
+    def measure_wafer_threaded(self):
+        if self.__measuring:
+            self.infotext("Measurement already running")
+        else:
+            thread = threading.Thread(target=self.measure_wafer)
+            thread.start()
 
     def measure_wafer(self):
         if self.__currentdir == "":
@@ -505,7 +540,8 @@ class DSM:
             self.infotext("The chip directory already exists")
             return 1
 
-        self.infotext("Measuring chip")
+        self.infotext("Measuring wafer")
+        self.set_measuring(True)
 
         os.makedirs(waferpath)
 
@@ -551,6 +587,8 @@ class DSM:
 
         self.infotext("Wafer ready")
         print("Wafer ready")
+
+        self.set_measuring(False)
 
 
 def main():
