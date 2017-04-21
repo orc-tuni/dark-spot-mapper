@@ -103,6 +103,7 @@ class DSM:
         self.__timestring = self.timestringfunc()
         self.__measuring = False
         self.__aborting = False
+        self.__stitchlock = threading.Lock()
 
         self.__corner1 = (0, 0)
         self.__corner2 = (0, 0)
@@ -508,6 +509,7 @@ class DSM:
             self.stages.step_up(2*mstep)
             self.stages.step_left(mstep)
 
+            self.__stitchlock.acquire()
             # Stitch the images
             cmdstr = "magick convert background_3x3.png "
             cmdstr += chippath + "/*1.png -gravity Northwest -geometry +0+0 -composite "
@@ -521,6 +523,7 @@ class DSM:
             cmdstr += chippath + "/*9.png -geometry +1520+1520 -composite "
             cmdstr += chippath + "/" + chipname + "_" + self.__timestring + "_stitch.png"
             os.system(cmdstr)
+            self.__stitchlock.release()
 
             """
             # For non-rotated image
@@ -603,7 +606,7 @@ class DSM:
             self.stages.step_up(mstep)
             time.sleep(sleeptime)
 
-            stitch_thread = threading.Thread(target=self.stitch_9, args=(directory, basename, stitchname))
+            stitch_thread = threading.Thread(target=self.stitch_9, name="stitch", args=(directory, basename, stitchname))
             stitch_thread.start()
         except dsm_exceptions.AbortException:
             raise dsm_exceptions.AbortException
@@ -617,6 +620,7 @@ class DSM:
         :param stitchname: name of this particular stitch
         :return: -
         """
+        self.__stitchlock.acquire()
         cmdstr = "magick convert background_3x3.png "
         cmdstr += directory + "/*1.png -gravity Northwest -geometry +0+0 -composite "
         cmdstr += directory + "/*2.png -geometry +760+0 -composite "
@@ -629,6 +633,7 @@ class DSM:
         cmdstr += directory + "/*9.png -geometry +1520+1520 -composite "
         cmdstr += directory + "/" + basename + "_" + self.__timestring + "_" + stitchname + "_stitch.png"
         os.system(cmdstr)
+        self.__stitchlock.release()
         print("Stitch", stitchname, "ready")
 
     def measure_wafer_threaded(self):
@@ -700,6 +705,23 @@ class DSM:
 
             self.stages.mm_left(20)
             self.stages.mm_down(25)
+
+            self.__stitchlock.acquire()
+            print("Stitching wafer")
+            cmdstr = "magick convert background_wafer.png "
+            cmdstr += waferpath + "/00x20/*stitch.png -gravity Northwest -geometry +5800+0 -composite "
+            cmdstr += waferpath + "/00x10/*stitch.png -geometry +5800+2580 -composite "
+            cmdstr += waferpath + "/00x00/*stitch.png -geometry +5800+5160 -composite "
+            cmdstr += waferpath + "/-20x00/*stitch.png -geometry +0+5160 -composite "
+            cmdstr += waferpath + "/-10x00/*stitch.png -geometry +2900+5160 -composite "
+            cmdstr += waferpath + "/10x00/*stitch.png -geometry +8700+5160 -composite "
+            cmdstr += waferpath + "/20x00/*stitch.png -geometry +11600+5160 -composite "
+            cmdstr += waferpath + "/00x-10/*stitch.png -geometry +5800+7740 -composite "
+            cmdstr += waferpath + "/00x-20/*stitch.png -geometry +5800+10320 -composite "
+            cmdstr += waferpath + "/" + wafername + "_" + self.__timestring + "_stitch.png"
+            os.system(cmdstr)
+            self.__stitchlock.release()
+            print("Stitch of ", wafername, "ready")
 
             self.infotext("Wafer ready")
             print("Wafer ready")
