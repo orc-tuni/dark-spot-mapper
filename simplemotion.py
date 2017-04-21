@@ -4,9 +4,12 @@
 # Copyright 2016 - 2017 Mika Mäki & Tampere University of Technology
 # Mika would like to license this program with GPLv3+ but it would require some university bureaucracy
 
+import dsm_exceptions
 
 # C++ DLL support for SimpleMotion
 import ctypes
+
+import time
 
 
 class SimpleMotion:
@@ -21,6 +24,7 @@ class SimpleMotion:
 
         self.__x = 0
         self.__y = 0
+        self.__abort = False
 
         # Experimental values from SL309 Dark Spot Mapper
         self.mm_to_steps = 51122.04724409449
@@ -44,6 +48,13 @@ class SimpleMotion:
             print("Connecting to motor drivers returned codes: " + str(a1err) + " " + str(a2err) + " " + str(a3err))
             print("Could not connect to motor drivers")
             raise IOError
+
+    def abort(self):
+        self.__abort = True
+        self.__smdll.smCommand()
+        time.sleep(10)
+        self.__abort = False
+        self.reset_coords()
 
     def reset_coords(self):
         """
@@ -91,6 +102,10 @@ class SimpleMotion:
             steps *= -1
 
         while abs(steps) > 32760:
+            if self.__abort:
+                self.reset_coords()
+                raise dsm_exceptions.AbortException
+
             if steps < 0:
                 self.__smdll.smCommand(axis, b"INCTARGET", -32000)
                 steps += 32000

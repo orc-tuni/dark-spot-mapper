@@ -16,6 +16,7 @@ Requires
 """
 
 # Program modules
+import dsm_exceptions
 import ni_camera
 import simplemotion
 
@@ -101,6 +102,7 @@ class DSM:
         self.__currentdir = ""
         self.__timestring = self.timestringfunc()
         self.__measuring = False
+        self.__aborting = False
 
         self.__corner1 = (0, 0)
         self.__corner2 = (0, 0)
@@ -194,6 +196,9 @@ class DSM:
 
         self.__resetCoords_Button = tkinter.Button(self.__mainWindow, text="Reset coordinates", command=self.reset_coords)
         self.__resetCoords_Button.grid(row=4, column=5)
+
+        self.__abortButton = tkinter.Button(self.__mainWindow, text="Abort", command=self.abort)
+        self.__abortButton.grid(row=5, column=5)
 
         # Picture elements
 
@@ -291,6 +296,24 @@ class DSM:
         self.infotext("")
         self.__mainWindow.mainloop()
 
+    def abort(self):
+        if not self.__aborting:
+            thread = threading.Thread(target=self.abort_threaded)
+            thread.start()
+
+    def abort_threaded(self):
+        self.infotext("Aborting")
+        self.__aborting = True
+        for button in self.__sensitiveButtons:
+            button.config(state=tkinter.DISABLED)
+
+        self.stages.abort()
+        self.__corner1 = (0, 0)
+        self.__corner2 = (0, 0)
+        self.infotext("Aborted")
+        self.__aborting = False
+        self.set_measuring(False)
+
     @staticmethod
     def debug():
         """
@@ -318,7 +341,7 @@ class DSM:
         self.camera.takepic(filename, chippath)
 
     def takepic_area(self, name, path, number, total):
-        filename = name + "_" + self.__timestring + "_" + str(number).zfill(math.ceil(math.log10(total+1)))
+        filename = name + "_" + self.__timestring + "_" + str(number).zfill(int(math.ceil(math.log10(total+1))))
         self.camera.takepic(filename, path)
 
     @staticmethod
@@ -415,7 +438,7 @@ class DSM:
         if self.__measuring:
             self.infotext("Measurement already running")
         else:
-            thread = threading.Thread(target=self.measure_chip)
+            thread = threading.Thread(target=self.measure_chip, name="measurement")
             thread.start()
 
     def measure_chip(self):
@@ -424,99 +447,102 @@ class DSM:
         Begins from the "north" corner and returns there
         :return:
         """
-        if self.__currentdir == "":
-            self.infotext("The base directory has not been set")
-            return
+        try:
+            if self.__currentdir == "":
+                self.infotext("The base directory has not been set")
+                return
 
-        mstep = 36000
-        sleeptime = 0.5
-        chipname = self.__sampleVar.get()
+            mstep = 36000
+            sleeptime = 0.5
+            chipname = self.__sampleVar.get()
 
-        chippath = self.__currentdir + "/" + chipname + "_" + self.__timestring
-        # print(chippath)
+            chippath = self.__currentdir + "/" + chipname + "_" + self.__timestring
+            # print(chippath)
 
-        if os.path.exists(chippath):
-            self.infotext("The chip directory already exists")
-            return
+            if os.path.exists(chippath):
+                self.infotext("The chip directory already exists")
+                return
 
-        self.infotext("Measuring chip")
-        self.set_measuring(True)
+            self.infotext("Measuring chip")
+            self.set_measuring(True)
 
-        os.makedirs(chippath)
+            os.makedirs(chippath)
 
-        self.stages.step_left(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 1)
+            self.stages.step_left(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 1)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 2)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 2)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 3)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 3)
 
-        self.stages.step_down(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 4)
+            self.stages.step_down(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 4)
 
-        self.stages.step_left(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 5)
+            self.stages.step_left(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 5)
 
-        self.stages.step_left(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 6)
+            self.stages.step_left(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 6)
 
-        self.stages.step_down(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 7)
+            self.stages.step_down(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 7)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 8)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 8)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.takepic_chip(chipname, chippath, 9)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.takepic_chip(chipname, chippath, 9)
 
-        # Return to the previous position
-        self.stages.step_up(2*mstep)
-        self.stages.step_left(mstep)
+            # Return to the previous position
+            self.stages.step_up(2*mstep)
+            self.stages.step_left(mstep)
 
-        # Stitch the images
-        cmdstr = "magick convert background_3x3.png "
-        cmdstr += chippath + "/*1.png -gravity Northwest -geometry +0+0 -composite "
-        cmdstr += chippath + "/*2.png -geometry +760+0 -composite "
-        cmdstr += chippath + "/*3.png -geometry +1520+0 -composite "
-        cmdstr += chippath + "/*6.png -geometry +0+760 -composite "
-        cmdstr += chippath + "/*5.png -geometry +760+760 -composite "
-        cmdstr += chippath + "/*4.png -geometry +1520+760 -composite "
-        cmdstr += chippath + "/*7.png -geometry +0+1520 -composite "
-        cmdstr += chippath + "/*8.png -geometry +760+1520 -composite "
-        cmdstr += chippath + "/*9.png -geometry +1520+1520 -composite "
-        cmdstr += chippath + "/" + chipname + "_" + self.__timestring + "_stitch.png"
-        os.system(cmdstr)
+            # Stitch the images
+            cmdstr = "magick convert background_3x3.png "
+            cmdstr += chippath + "/*1.png -gravity Northwest -geometry +0+0 -composite "
+            cmdstr += chippath + "/*2.png -geometry +760+0 -composite "
+            cmdstr += chippath + "/*3.png -geometry +1520+0 -composite "
+            cmdstr += chippath + "/*6.png -geometry +0+760 -composite "
+            cmdstr += chippath + "/*5.png -geometry +760+760 -composite "
+            cmdstr += chippath + "/*4.png -geometry +1520+760 -composite "
+            cmdstr += chippath + "/*7.png -geometry +0+1520 -composite "
+            cmdstr += chippath + "/*8.png -geometry +760+1520 -composite "
+            cmdstr += chippath + "/*9.png -geometry +1520+1520 -composite "
+            cmdstr += chippath + "/" + chipname + "_" + self.__timestring + "_stitch.png"
+            os.system(cmdstr)
 
-        """
-        # For non-rotated image
-        # Stitch the images
-        cmdstr = "magick convert background_3x3.png "
-        cmdstr += chippath + "/*9.png -gravity Northwest -geometry +0+0 -composite "
-        cmdstr += chippath + "/*8.png -geometry +760+0 -composite "
-        cmdstr += chippath + "/*7.png -geometry +1520+0 -composite "
-        cmdstr += chippath + "/*4.png -geometry +0+760 -composite "
-        cmdstr += chippath + "/*5.png -geometry +760+760 -composite "
-        cmdstr += chippath + "/*6.png -geometry +1520+760 -composite "
-        cmdstr += chippath + "/*3.png -geometry +0+1520 -composite "
-        cmdstr += chippath + "/*2.png -geometry +760+1520 -composite "
-        cmdstr += chippath + "/*1.png -geometry +1520+1520 -composite "
-        cmdstr += chippath + "/" + chipname + "_" + self.__timestring + "_stitch.png"
-        os.system(cmdstr)
-        """
+            """
+            # For non-rotated image
+            # Stitch the images
+            cmdstr = "magick convert background_3x3.png "
+            cmdstr += chippath + "/*9.png -gravity Northwest -geometry +0+0 -composite "
+            cmdstr += chippath + "/*8.png -geometry +760+0 -composite "
+            cmdstr += chippath + "/*7.png -geometry +1520+0 -composite "
+            cmdstr += chippath + "/*4.png -geometry +0+760 -composite "
+            cmdstr += chippath + "/*5.png -geometry +760+760 -composite "
+            cmdstr += chippath + "/*6.png -geometry +1520+760 -composite "
+            cmdstr += chippath + "/*3.png -geometry +0+1520 -composite "
+            cmdstr += chippath + "/*2.png -geometry +760+1520 -composite "
+            cmdstr += chippath + "/*1.png -geometry +1520+1520 -composite "
+            cmdstr += chippath + "/" + chipname + "_" + self.__timestring + "_stitch.png"
+            os.system(cmdstr)
+            """
 
-        self.infotext("Stitch ready")
-        self.set_measuring(False)
+            self.infotext("Stitch ready")
+            self.set_measuring(False)
+        except dsm_exceptions.AbortException:
+            self.infotext("Chip measurement aborted")
 
     def measure_9(self, directory, basename, stitchname):
         """
@@ -527,56 +553,60 @@ class DSM:
         :param stitchname: Name of this particular stitch
         :return: -
         """
-        mstep = 36000
-        sleeptime = 0.5
 
-        self.infotext("Measuring " + stitchname)
-        print("Measuring", stitchname)
-        os.makedirs(directory)
+        try:
+            mstep = 36000
+            sleeptime = 0.5
 
-        self.stages.step_left(mstep)
-        self.stages.step_up(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_1", directory)
+            self.infotext("Measuring " + stitchname)
+            print("Measuring", stitchname)
+            os.makedirs(directory)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_2", directory)
+            self.stages.step_left(mstep)
+            self.stages.step_up(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_1", directory)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_3", directory)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_2", directory)
 
-        self.stages.step_down(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_4", directory)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_3", directory)
 
-        self.stages.step_left(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_5", directory)
+            self.stages.step_down(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_4", directory)
 
-        self.stages.step_left(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_6", directory)
+            self.stages.step_left(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_5", directory)
 
-        self.stages.step_down(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_7", directory)
+            self.stages.step_left(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_6", directory)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_8", directory)
+            self.stages.step_down(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_7", directory)
 
-        self.stages.step_right(mstep)
-        time.sleep(sleeptime)
-        self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_9", directory)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_8", directory)
 
-        self.stages.step_left(mstep)
-        self.stages.step_up(mstep)
-        time.sleep(sleeptime)
+            self.stages.step_right(mstep)
+            time.sleep(sleeptime)
+            self.camera.takepic(basename + "_" + self.__timestring + "_" + stitchname + "_9", directory)
 
-        stitch_thread = threading.Thread(target=self.stitch_9, args=(directory, basename, stitchname))
-        stitch_thread.start()
+            self.stages.step_left(mstep)
+            self.stages.step_up(mstep)
+            time.sleep(sleeptime)
+
+            stitch_thread = threading.Thread(target=self.stitch_9, args=(directory, basename, stitchname))
+            stitch_thread.start()
+        except dsm_exceptions.AbortException:
+            raise dsm_exceptions.AbortException
 
     def stitch_9(self, directory, basename, stitchname):
         """
@@ -613,67 +643,69 @@ class DSM:
             thread.start()
 
     def measure_wafer(self):
-        if self.__currentdir == "":
-            self.infotext("The base directory has not been set")
-            return
+        try:
+            if self.__currentdir == "":
+                self.infotext("The base directory has not been set")
+                return
 
-        wafername = self.__sampleEntry.get()
-        waferpath = self.__currentdir + "/" + wafername + "_" + self.__timestring
-        sleeptime = 5
+            wafername = self.__sampleEntry.get()
+            waferpath = self.__currentdir + "/" + wafername + "_" + self.__timestring
+            sleeptime = 5
 
-        if os.path.exists(waferpath):
-            self.infotext("The wafer directory already exists")
-            return 1
+            if os.path.exists(waferpath):
+                self.infotext("The wafer directory already exists")
+                return 1
 
-        self.infotext("Measuring wafer")
-        self.set_measuring(True)
+            self.infotext("Measuring wafer")
+            self.set_measuring(True)
 
-        os.makedirs(waferpath)
+            os.makedirs(waferpath)
 
-        self.stages.mm_up(5)
-        time.sleep(sleeptime)
-        self.measure_9(waferpath + "/00x-20", wafername, "00x-20")
+            self.stages.mm_up(5)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/00x-20", wafername, "00x-20")
 
-        self.stages.mm_up(10)
-        time.sleep(sleeptime)
-        self.measure_9(waferpath + "/00x-10", wafername, "00x-10")
+            self.stages.mm_up(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/00x-10", wafername, "00x-10")
 
-        self.stages.mm_up(10)
-        time.sleep(sleeptime)
-        self.measure_9(waferpath + "/00x00", wafername, "00x00")
+            self.stages.mm_up(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/00x00", wafername, "00x00")
 
-        self.stages.mm_up(10)
-        time.sleep(sleeptime)
-        self.measure_9(waferpath + "/00x10", wafername, "00x10")
+            self.stages.mm_up(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/00x10", wafername, "00x10")
 
-        self.stages.mm_up(10)
-        time.sleep(sleeptime)
-        self.measure_9(waferpath + "/00x20", wafername, "00x20")
+            self.stages.mm_up(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/00x20", wafername, "00x20")
 
-        self.stages.mm_down(20)
-        self.stages.mm_left(20)
-        time.sleep(3*sleeptime)
-        self.measure_9(waferpath + "/-20x00", wafername, "-20x00")
+            self.stages.mm_down(20)
+            self.stages.mm_left(20)
+            time.sleep(3*sleeptime)
+            self.measure_9(waferpath + "/-20x00", wafername, "-20x00")
 
-        self.stages.mm_right(10)
-        time.sleep(sleeptime)
-        self.measure_9(waferpath + "/-10x00", wafername, "-10x00")
+            self.stages.mm_right(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/-10x00", wafername, "-10x00")
 
-        self.stages.mm_right(20)
-        time.sleep(2*sleeptime)
-        self.measure_9(waferpath + "/10x00", wafername, "10x00")
+            self.stages.mm_right(20)
+            time.sleep(2*sleeptime)
+            self.measure_9(waferpath + "/10x00", wafername, "10x00")
 
-        self.stages.mm_right(10)
-        time.sleep(sleeptime)
-        self.measure_9(waferpath + "/20x00", wafername, "20x00")
+            self.stages.mm_right(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/20x00", wafername, "20x00")
 
-        self.stages.mm_left(20)
-        self.stages.mm_down(25)
+            self.stages.mm_left(20)
+            self.stages.mm_down(25)
 
-        self.infotext("Wafer ready")
-        print("Wafer ready")
-
-        self.set_measuring(False)
+            self.infotext("Wafer ready")
+            print("Wafer ready")
+            self.set_measuring(False)
+        except dsm_exceptions.AbortException:
+            self.infotext("Wafer measurement aborted")
 
     def set_corner1(self):
         """
@@ -708,7 +740,7 @@ class DSM:
         if self.__measuring:
             self.infotext("Measurement already running")
         else:
-            thread = threading.Thread(target=self.measure_area)
+            thread = threading.Thread(target=self.measure_area, name="measurement")
             thread.start()
 
     def measure_area(self):
@@ -716,65 +748,69 @@ class DSM:
         Measures a custom area defined by two corners
         :return: -
         """
-        if self.__currentdir == "":
-            self.infotext("The base directory has not been set")
-            return
+        try:
+            if self.__currentdir == "":
+                self.infotext("The base directory has not been set")
+                return
 
-        area_name = self.__sampleEntry.get()
-        directory = self.__currentdir + "/" + area_name + "_" + self.__timestring
+            area_name = self.__sampleEntry.get()
+            directory = self.__currentdir + "/" + area_name + "_" + self.__timestring
 
-        if os.path.exists(directory):
-            self.infotext("The directory already exists")
-            return
+            if os.path.exists(directory):
+                self.infotext("The directory already exists")
+                return
 
-        if self.__corner1 == self.__corner2:
-            self.infotext("The corners should have different coordinates")
-            return
+            if self.__corner1 == self.__corner2:
+                self.infotext("The corners should have different coordinates")
+                return
 
-        # Start actually doing things
+            # Start actually doing things
 
-        self.infotext("Measuring Area")
-        print("Measuring Area")
-        os.makedirs(directory)
-        self.set_measuring(True)
+            self.infotext("Measuring Area")
+            print("Measuring Area")
+            os.makedirs(directory)
+            self.set_measuring(True)
 
-        mstep = 36000
-        sleeptime_x = 0.3
-        sleeptime_y = 0.5
-        x_width = int(math.ceil(abs(self.__corner1[0] - self.__corner2[0]) / mstep))
-        y_width = int(math.ceil(abs(self.__corner1[1] - self.__corner2[1]) / mstep))
-        i = 1
-        total = x_width * y_width
+            mstep = 36000
+            sleeptime_x = 0.3
+            sleeptime_y = 0.5
+            x_width = int(math.ceil(abs(self.__corner1[0] - self.__corner2[0]) / mstep))
+            y_width = int(math.ceil(abs(self.__corner1[1] - self.__corner2[1]) / mstep))
+            i = 1
+            total = x_width * y_width
 
-        startpos = self.stages.where()
+            startpos = self.stages.where()
 
-        # Move to upper left corner
-        dx = min(self.__corner1[0], self.__corner2[0])
-        dy = max(self.__corner1[1], self.__corner2[1])
-        self.stages.goto(dx, dy)
+            # Move to upper left corner
+            dx = min(self.__corner1[0], self.__corner2[0])
+            dy = max(self.__corner1[1], self.__corner2[1])
+            self.stages.goto(dx, dy)
 
-        initial_move_time = self.stages.time(startpos[0] - self.__corner1[0], startpos[1] - self.__corner1[1])
-        print("Expected initial movement time:", initial_move_time)
-        time.sleep(initial_move_time)
+            initial_move_time = self.stages.time(startpos[0] - self.__corner1[0], startpos[1] - self.__corner1[1])
+            print("Expected initial movement time:", initial_move_time)
+            time.sleep(initial_move_time)
 
-        for y in range(1, y_width+1):
-            for x in range(1, x_width+1):
-                self.takepic_area(area_name, directory, i, total)
-                i += 1
+            for y in range(1, y_width+1):
+                for x in range(1, x_width+1):
+                    self.takepic_area(area_name, directory, i, total)
+                    i += 1
 
-                if x < x_width:
-                    if y % 2 == 0:
-                        self.stages.step_left(mstep)
+                    if x < x_width:
+                        if y % 2 == 0:
+                            self.stages.step_left(mstep)
+                        else:
+                            self.stages.step_right(mstep)
+                        time.sleep(sleeptime_x)
                     else:
-                        self.stages.step_right(mstep)
-                    time.sleep(sleeptime_x)
-                else:
-                    if y < y_width:
-                        self.stages.step_down(mstep)
-                        time.sleep(sleeptime_y)
+                        if y < y_width:
+                            self.stages.step_down(mstep)
+                            time.sleep(sleeptime_y)
 
-        self.set_measuring(False)
-        self.infotext("Area measured")
+            self.infotext("Area measured")
+
+            self.set_measuring(False)
+        except dsm_exceptions.AbortException:
+            self.infotext("Area measurement aborted")
 
     def measure_entire_wafer_threaded(self):
         """
@@ -782,6 +818,13 @@ class DSM:
         The resulting folder is about 6 GB
         :return: -
         """
+        if self.__measuring:
+            self.infotext("Measurement already running")
+        else:
+            thread = threading.Thread(target=self.measure_entire_wafer, name="measurement")
+            thread.start()
+
+    def measure_entire_wafer(self):
         currentpos = self.stages.where()
 
         self.__corner1 = (int(round(currentpos[0] - (self.stages.mm_to_steps * 26))),
@@ -790,10 +833,11 @@ class DSM:
         self.__corner2 = (int(round(currentpos[0] + (self.stages.mm_to_steps * 26))),
                           int(round(currentpos[1])))
 
-        self.measure_area_threaded()
+        self.measure_area()
 
-        # Return to the original position
-        self.stages.goto(currentpos[0], currentpos[1])
+        if not self.__aborting:
+            # Return to the original position
+            self.stages.goto(currentpos[0], currentpos[1])
 
 
 def main():
