@@ -36,8 +36,7 @@ class SimpleMotion:
             self.__smdll = ctypes.cdll.LoadLibrary("SimpleMotion64")
             print("Detected SimpleMotion version: " + str(self.__smdll.smGetVersion()))
         except:
-            print("Loading of SimpleMotion library failed")
-            raise IOError
+            raise IOError("Loading of SimpleMotion library failed")
 
         # Testing connection to motor drivers
         a1err = self.__smdll.smCommand(self.__axis1, b"TESTCOMMUNICATION", 0)
@@ -46,8 +45,7 @@ class SimpleMotion:
 
         if a1err != 0 or a2err != 0 or a3err != 0:
             print("Connecting to motor drivers returned codes: " + str(a1err) + " " + str(a2err) + " " + str(a3err))
-            print("Could not connect to motor drivers")
-            raise IOError
+            raise IOError("Could not connect to motor drivers")
 
     def abort(self):
         self.__abort = True

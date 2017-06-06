@@ -30,8 +30,7 @@ class NI_Camera:
             # nivision.IMAQdxConfigureAcquisition(self.__camid, 1, 1)
             nivision.IMAQdxConfigureGrab(self.__camid)
         except (nivision.ImaqError, nivision.ImaqDxError):
-            print("Camera setup failed")
-            raise IOError
+            raise IOError("Could not connect to camera")
 
         # Initialise image objects
         self.__img_frame = nivision.imaqCreateImage(nivision.IMAQ_IMAGE_U8)
@@ -51,7 +50,7 @@ class NI_Camera:
             print("Closing camera")
             nivision.IMAQdxCloseCamera(self.__camid)
         except (nivision.ImaqError, nivision.ImaqDxError):
-            print("Closing camera failed")
+            raise IOError("Closing camera failed")
 
     def setcamsettings(self, camvars):
         """
@@ -68,6 +67,7 @@ class NI_Camera:
                 nivision.IMAQdxSetAttribute(self.__camid, string.encode("ascii"), value)
             return True
         except (nivision.ImaqError, nivision.ImaqDxError):
+            print("Setting camera attributes failed")
             return False
 
     def takeframe(self):
