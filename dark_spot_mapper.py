@@ -46,21 +46,21 @@ class QtDisp:
     This class provides a window for the camera video
     """
     def __init__(self, camera, autolevels):
-        self.camera = camera
+        self.__camera = camera
 
         self.__autolevels = autolevels
 
-        app = QtGui.QApplication([])
+        app = pg.mkQApp()
 
         win = QtGui.QMainWindow()
         win.resize(1200, 700)
-        self.imv = pg.ImageView()
-        win.setCentralWidget(self.imv)
+        self.__imv = pg.ImageView()
+        win.setCentralWidget(self.__imv)
         win.setWindowTitle("ORC Dark Spot Mapper ")
         win.show()
 
         # This line prevents a bug at image leveling
-        self.imv.setLevels(0.1, 0.9)
+        self.__imv.setLevels(0.1, 0.9)
 
         self.takeframe()
 
@@ -75,7 +75,7 @@ class QtDisp:
         Fetches a frame from the camera and displays it
         :return: -
         """
-        self.camera.takeframe()
+        self.__camera.takeframe()
 
         # The camera.takeframe() saves the frame on a RAM disk since transporting the image directly from
         # NI Vision to Python would result in a memory leak
@@ -83,9 +83,9 @@ class QtDisp:
         transposed = np.transpose(matimg)
 
         if self.__autolevels:
-            self.imv.setImage(transposed, autoLevels=True)
+            self.__imv.setImage(transposed, autoLevels=True)
         else:
-            self.imv.setImage(transposed, levels=(0, 1))
+            self.__imv.setImage(transposed, levels=(0, 1))
 
 
 class DSM:
@@ -100,7 +100,7 @@ class DSM:
         # gc.set_debug(gc.DEBUG_UNCOLLECTABLE)
 
         self.__currentdir = ""
-        self.__timestring = self.timestringfunc()
+        self.__timestring = time.strftime("%Y-%m-%d")
         self.__measuring = False
         self.__aborting = False
         self.__stitchlock = threading.Lock()
@@ -115,18 +115,10 @@ class DSM:
         camdefaultsettings = [256, 1500, 0, 0, 4, 230]
 
         # Stage setup
-        try:
-            self.stages = simplemotion.SimpleMotion()
-        except IOError:
-            print("Stage setup failed")
-            exit()
+        self.stages = simplemotion.SimpleMotion()
 
         # Camera setup
-        try:
-            self.camera = ni_camera.NI_Camera(self.__camname, self.__camquality)
-        except IOError:
-            print("Camera setup failed")
-            exit()
+        self.camera = ni_camera.NI_Camera(self.__camname, self.__camquality)
 
         # Qt thread & window
 
@@ -327,6 +319,7 @@ class DSM:
 
     def infotext(self, text):
         self.__infoVar.set(text)
+        print(text)
 
     def setcamsettings(self):
         if self.camera.setcamsettings(self.__camVars):
@@ -344,23 +337,6 @@ class DSM:
     def takepic_area(self, name, path, number, total):
         filename = name + "_" + self.__timestring + "_" + str(number).zfill(int(math.ceil(math.log10(total+1))))
         self.camera.takepic(filename, path)
-
-    @staticmethod
-    def timestringfunc():
-        """
-        Returns the current date in ISO 8601 format
-        :return: string of current date
-        """
-        year = str(time.localtime().tm_year)
-        mon = str(time.localtime().tm_mon)
-        if len(mon) == 1:
-            mon = "0" + mon
-        mday = str(time.localtime().tm_mday)
-        if len(mday) == 1:
-            mday = "0" + mday
-
-        timestring = year + "-" + mon + "-" + mday
-        return timestring
 
     def qt_restart(self):
         if not self.qt_thread.is_alive():
@@ -562,7 +538,6 @@ class DSM:
             sleeptime = 0.5
 
             self.infotext("Measuring " + stitchname)
-            print("Measuring", stitchname)
             os.makedirs(directory)
 
             self.stages.step_left(mstep)
@@ -655,7 +630,7 @@ class DSM:
 
             wafername = self.__sampleEntry.get()
             waferpath = self.__currentdir + "/" + wafername + "_" + self.__timestring
-            sleeptime = 5
+            sleeptime = 5.5
 
             if os.path.exists(waferpath):
                 self.infotext("The wafer directory already exists")
@@ -674,11 +649,24 @@ class DSM:
             time.sleep(sleeptime)
             self.measure_9(waferpath + "/00x-10", wafername, "00x-10")
 
-            self.stages.mm_up(10)
+            self.stages.mm_right(10)
             time.sleep(sleeptime)
-            self.measure_9(waferpath + "/00x00", wafername, "00x00")
+            self.measure_9(waferpath + "/10x-10", wafername, "10x-10")
 
             self.stages.mm_up(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/10x00", wafername, "10x00")
+
+            self.stages.mm_right(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/20x00", wafername, "20x00")
+
+            self.stages.mm_left(10)
+            self.stages.mm_up(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/10x10", wafername, "10x10")
+
+            self.stages.mm_left(10)
             time.sleep(sleeptime)
             self.measure_9(waferpath + "/00x10", wafername, "00x10")
 
@@ -686,37 +674,46 @@ class DSM:
             time.sleep(sleeptime)
             self.measure_9(waferpath + "/00x20", wafername, "00x20")
 
-            self.stages.mm_down(20)
-            self.stages.mm_left(20)
-            time.sleep(3*sleeptime)
-            self.measure_9(waferpath + "/-20x00", wafername, "-20x00")
+            self.stages.mm_down(10)
+            self.stages.mm_left(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/-10x10", wafername, "-10x10")
 
-            self.stages.mm_right(10)
+            self.stages.mm_down(10)
             time.sleep(sleeptime)
             self.measure_9(waferpath + "/-10x00", wafername, "-10x00")
 
-            self.stages.mm_right(20)
-            time.sleep(2*sleeptime)
-            self.measure_9(waferpath + "/10x00", wafername, "10x00")
+            self.stages.mm_left(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/-20x00", wafername, "-20x00")
 
             self.stages.mm_right(10)
+            self.stages.mm_down(10)
             time.sleep(sleeptime)
-            self.measure_9(waferpath + "/20x00", wafername, "20x00")
+            self.measure_9(waferpath + "/-10x-10", wafername, "-10x-10")
 
-            self.stages.mm_left(20)
+            self.stages.mm_up(10)
+            self.stages.mm_right(10)
+            time.sleep(sleeptime)
+            self.measure_9(waferpath + "/00x00", wafername, "00x00")
+
             self.stages.mm_down(25)
 
             self.__stitchlock.acquire()
-            print("Stitching wafer")
+            self.infotext("Stitching wafer")
             cmdstr = "magick convert background_wafer.png "
             cmdstr += waferpath + "/00x20/*stitch.png -gravity Northwest -geometry +5800+0 -composite "
             cmdstr += waferpath + "/00x10/*stitch.png -geometry +5800+2580 -composite "
+            cmdstr += waferpath + "/-10x10/*stitch.png -geometry +2900+2580 -composite "
+            cmdstr += waferpath + "/10x10/*stitch.png -geometry +8700+2580 -composite "
             cmdstr += waferpath + "/00x00/*stitch.png -geometry +5800+5160 -composite "
             cmdstr += waferpath + "/-20x00/*stitch.png -geometry +0+5160 -composite "
             cmdstr += waferpath + "/-10x00/*stitch.png -geometry +2900+5160 -composite "
             cmdstr += waferpath + "/10x00/*stitch.png -geometry +8700+5160 -composite "
             cmdstr += waferpath + "/20x00/*stitch.png -geometry +11600+5160 -composite "
             cmdstr += waferpath + "/00x-10/*stitch.png -geometry +5800+7740 -composite "
+            cmdstr += waferpath + "/-10x-10/*stitch.png -geometry +2900+7740 -composite "
+            cmdstr += waferpath + "/10x-10/*stitch.png -geometry +8700+7740 -composite "
             cmdstr += waferpath + "/00x-20/*stitch.png -geometry +5800+10320 -composite "
             cmdstr += waferpath + "/" + wafername + "_" + self.__timestring + "_stitch.png"
             os.system(cmdstr)
@@ -724,7 +721,6 @@ class DSM:
             print("Stitch of ", wafername, "ready")
 
             self.infotext("Wafer ready")
-            print("Wafer ready")
             self.set_measuring(False)
         except dsm_exceptions.AbortException:
             self.infotext("Wafer measurement aborted")
