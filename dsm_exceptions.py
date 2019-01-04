@@ -1,8 +1,8 @@
-# This module provides custom exceptions for
-# ORC Dark Spot Mapper
+"""This module provides custom exceptions for ORC Dark Spot Mapper
 
-# Copyright 2016 - 2017 Mika Mäki & Tampere University of Technology
-# Mika would like to license this program with GPLv3+ but it would require some university bureaucracy
+Copyright 2016 - 2019 Mika Mäki & Tampere University of Technology
+Mika would like to license this program with GPLv3+ but it would require some university bureaucracy
+"""
 
 
 class AbortException(Exception):
