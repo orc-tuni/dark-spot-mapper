@@ -1,0 +1,17 @@
+
+stages:
+- test
+
+lint:
+  stage: test
+  when: manual
+  allow_failure: true
+  image: python:latest
+  cache:
+    paths:
+    - .pip
+  before_script:
+  - python -V
+  - pip --cache-dir=.pip install -r requirements.txt
+  script:
+  - pylint -j 0 *.py
