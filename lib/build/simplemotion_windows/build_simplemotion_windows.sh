@@ -30,9 +30,9 @@ mv download/ftd2xx/amd64/* build/x86_64/ftdilib/
 # Build 32-bit
 cd $CWD/build/x86
 i686-w64-mingw32-g++ -O2 -Wall -c -DBUILD_DLL simplemotion.cpp sm_consts.cpp 
-i686-w64-mingw32-g++ -O2 -Wall -shared simplemotion.o sm_consts.o -o simplemotion.dll -Ibuild/x86/ftdilib -Lbuild/x86/ftdilib -lftd2xx
+i686-w64-mingw32-g++ -O2 -Wall -shared simplemotion.o sm_consts.o -o simplemotion.dll -Iftdilib -Lftdilib -lftd2xx
 
 # Build 64-bit
 cd ${CWD}/build/x86_64
 x86_64-w64-mingw32-g++ -O2 -Wall -c -DBUILD_DLL simplemotion.cpp sm_consts.cpp
-x86_64-w64-mingw32-g++ -O2 -Wall -shared simplemotion.o sm_consts.o -o simplemotion64.dll -Ibuild/x86_64/ftdilib -Lbuild/x86_64/ftdilib -lftd2xx
+x86_64-w64-mingw32-g++ -O2 -Wall -shared simplemotion.o sm_consts.o -o simplemotion64.dll -Iftdilib -Lftdilib -lftd2xx
