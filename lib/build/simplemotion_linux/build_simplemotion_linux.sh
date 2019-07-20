@@ -29,4 +29,4 @@ sed -i 's@stricmp(@strcasecmp(@g' build/simplemotion.cpp
 
 cd ${CWD}/build
 g++ -O2 -Wall -c -fPIC -DBUILD_DLL simplemotion.cpp sm_consts.cpp -I/usr/include
-g++ -O2 -Wall -shared simplemotion.o sm_consts.o -o simplemotion64.so -I/build/ftdilib -L/build/ftdilib -lftd2xx
+g++ -O2 -Wall -shared simplemotion.o sm_consts.o -o simplemotion64.so -Ibuild/ftdilib -Lbuild/ftdilib -lftd2xx
