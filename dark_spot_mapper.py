@@ -2,9 +2,6 @@
 
 Dark Spot Mapper is a measurement device at the Optoelectronics Research Centre of Tampere University [of Technology]
 
-Copyright 2016-2019 Mika Mäki & Tampere University of Technology
-Mika would like to license this program with GPLv3+ but it would require some university bureaucracy
-
 Requires
 - PyQtGraph
 - Matplotlib
@@ -28,10 +25,16 @@ TODO LIST
 - GUI for changing stitch wait times
 """
 
+__author__ = "Mika Mäki"
+__copyright__ = "Copyright 2016-2019, Tampere University"
+__credits__ = ["Mika Mäki"]
+__maintainer__ = "Mika Mäki"
+__email__ = "mika.maki@tuni.fi"
+
 # Program modules
 import dsm_exceptions
-import ni_camera
-import simplemotion
+import stagecontrol
+from devices import ni_camera
 
 # GUI
 import tkinter
@@ -70,7 +73,7 @@ WINDOW_TITLE = "ORC Dark Spot Mapper"
 
 class QtDisp:
     """This class provides a window for the camera video"""
-    def __init__(self, camera, auto_levels):
+    def __init__(self, camera: ni_camera.NI_Camera, auto_levels: bool):
         self.__camera = camera
 
         self.__auto_levels = auto_levels
@@ -100,7 +103,7 @@ class QtDisp:
 
         :return: -
         """
-        self.__camera.take_frame()
+        self.__camera.save_pic("R:\\", "nivisiontemp", log=False)
 
         # The camera.take_frame() saves the frame on a RAM disk since transporting the image directly from
         # NI Vision to Python would result in a memory leak
@@ -132,13 +135,13 @@ class DSM:
         self.__corner2 = (0, 0)
 
         # Camera variables
-        self.__camname = b"cam0"
+        self.__camname = "cam0"
         self.__camquality = 10000
         cam_label_texts = ["Auto Exposure", "Brightness", "Gain", "Gamma", "Sharpness", "Shutter"]
         cam_default_settings = [256, 1500, 0, 0, 4, 230]
 
         # Stage setup
-        self.stages = simplemotion.SimpleMotion()
+        self.stages = stagecontrol.StageControl()
 
         # Camera setup
         self.camera = ni_camera.NI_Camera(self.__camname, self.__camquality)
@@ -210,7 +213,11 @@ class DSM:
         self.__corner2_Button = tkinter.Button(self.__mainWindow, text="Set corner 2", command=self.set_corner2)
         self.__corner2_Button.grid(row=3, column=5)
 
-        self.__resetCoords_Button = tkinter.Button(self.__mainWindow, text="Reset coordinates", command=self.reset_coords)
+        self.__resetCoords_Button = tkinter.Button(
+            self.__mainWindow,
+            text="Reset coordinates",
+            command=self.reset_coords
+        )
         self.__resetCoords_Button.grid(row=4, column=5)
 
         self.__abortButton = tkinter.Button(self.__mainWindow, text="Abort", command=self.abort)
@@ -345,22 +352,33 @@ class DSM:
         logger.info(text)
 
     def set_cam_settings(self) -> None:
-        if self.camera.set_cam_settings(self.__camVars):
+        cam_setting_texts = [
+            ni_camera.CameraSettings.AUTO_EXPOSURE,
+            ni_camera.CameraSettings.BRIGHTNESS,
+            ni_camera.CameraSettings.GAIN,
+            ni_camera.CameraSettings.GAMMA,
+            ni_camera.CameraSettings.SHARPNESS,
+            ni_camera.CameraSettings.SHUTTER
+        ]
+        try:
+            for index, var in enumerate(self.__camVars):
+                value = int(var.get())
+                self.camera.set_cam_setting(cam_setting_texts[index], value)
             self.info_text("Camera configuration successful")
-        else:
-            self.info_text("Camera configuration failed")
+        except IOError as e:
+            self.info_text("Camera configuration failed: {}".format(e))
 
     def takepic(self) -> None:
-        self.camera.takepic(self.__picVar.get(), self.__current_dir)
+        self.camera.save_pic(self.__picVar.get(), self.__current_dir)
 
     def takepic_chip(self, chip_name: str, chip_path: str, number: int) -> None:
         filename = "{}_{}_{}".format(chip_name, self.__time_str, number)
-        self.camera.takepic(filename, chip_path)
+        self.camera.save_pic(filename, chip_path)
 
     def takepic_area(self, name: str, path: str, number: int, total: int) -> None:
         padded_number = str(number).zfill(int(math.ceil(math.log10(total + 1))))
         filename = "{}_{}_{}".format(name, self.__time_str, padded_number)
-        self.camera.takepic(filename, path)
+        self.camera.save_pic(filename, path)
 
     def qt_restart(self) -> None:
         if not self.qt_thread.is_alive():
@@ -567,45 +585,49 @@ class DSM:
             self.stages.step_left(mstep)
             self.stages.step_up(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_1", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_1", directory)
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_2", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_2", directory)
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_3", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_3", directory)
 
             self.stages.step_down(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_4", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_4", directory)
 
             self.stages.step_left(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_5", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_5", directory)
 
             self.stages.step_left(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_6", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_6", directory)
 
             self.stages.step_down(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_7", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_7", directory)
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_8", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_8", directory)
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.takepic(basename + "_" + self.__time_str + "_" + stitch_name + "_9", directory)
+            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_9", directory)
 
             self.stages.step_left(mstep)
             self.stages.step_up(mstep)
             time.sleep(sleep_time)
 
-            stitch_thread = threading.Thread(target=self.stitch_9, name="stitch", args=(directory, basename, stitch_name))
+            stitch_thread = threading.Thread(
+                target=self.stitch_9,
+                name="stitch",
+                args=(directory, basename, stitch_name)
+            )
             stitch_thread.start()
         except dsm_exceptions.AbortException:
             raise dsm_exceptions.AbortException

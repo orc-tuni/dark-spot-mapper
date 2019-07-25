@@ -1,10 +1,13 @@
 """This software is for stitching images created by Dark Spot Mapper
 
 Dark Spot Mapper is a measurement device at the Optoelectronics Research Centre of Tampere University of Technology
-
-Copyright 2017-2019 Mika Mäki & Tampere University of Technology
-Mika would like to license this program with GPLv3+ but it would require some university bureaucracy
 """
+
+__author__ = "Mika Mäki"
+__copyright__ = "Copyright 2017-2019, Tampere University"
+__credits__ = ["Mika Mäki"]
+__maintainer__ = "Mika Mäki"
+__email__ = "mika.maki@tuni.fi"
 
 import tkinter.filedialog
 import os
