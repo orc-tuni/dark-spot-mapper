@@ -1,7 +1,5 @@
 .idea
-.idea/*
 __pycache__
-__pycache__/*
 *.pyc
-logs
+logs/*.txt
 venv
