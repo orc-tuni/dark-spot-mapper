@@ -164,7 +164,11 @@ except Exception as e:
 
 # FTDI
 
-def list_devices():
+def list_devices() -> None:
+    if sys.platform == "win32":
+        print("FTDI functions are not supported on Windows")
+        return
+
     num_devs = ctypes.c_int32(0)
     ret = __smdll.FT_CreateDeviceInfoList(ctypes.byref(num_devs))
     print("Found {} devices, got return code {}".format(num_devs.value, FT_Status(ret)))
