@@ -6,6 +6,14 @@ AXES = ["TTL232R", "TTL232R2", "TTL232R3"]
 
 
 class SimpleMotionTest(unittest.TestCase):
+    # FTDI
+
+    @staticmethod
+    def test_list_devices():
+        sm.list_devices()
+
+    # SimpleMotion
+
     @staticmethod
     def test_clear_faults():
         for axis in AXES:
