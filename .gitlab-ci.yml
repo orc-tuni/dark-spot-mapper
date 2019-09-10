@@ -1,6 +1,29 @@
-
 stages:
+- build
 - test
+
+build_simplemotion_linux:
+  stage: build
+  when: manual
+  allow_failure: true
+  image: alpine:latest
+  script:
+    - sh "lib/build/simplemotion_linux/build_simplemotion_linux.sh"
+  artifacts:
+    paths:
+      - build/simplemotion64.so
+
+build_simplemotion_windows:
+  stage: build
+  when: manual
+  allow_failure: true
+  image: debian:latest
+  script:
+    - sh "lib/build/simplemotion_windows/build_simplemotion_windows.sh"
+  artifacts:
+    paths:
+      - build/x86/simplemotion.dll
+      - build/x86_64/simplemotion64.dll
 
 lint:
   stage: test

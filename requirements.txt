@@ -1,6 +1,8 @@
 matplotlib >= 3.0.2
 numpy >= 1.15.4
 objgraph >= 3.4.0
+# opencv-python >= 4.1.0.25
+pillow >= 6.1.0
 pylint >= 2.2.2
 pynivision >= 2015.0.0
 PyQt5 >= 5.11.3
