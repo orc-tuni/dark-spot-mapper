@@ -81,8 +81,7 @@ ARG OPENCV_ENABLE_NONFREE=OFF
 # Require a somewhat recent CPU (>= 2010)
 ARG CPU_BASELINE=POPCNT,SSE,SSE2,SSE3,SSSE3,SSE4_1,SSE4_2
 # The CPU_DISPATCH is configured automatically with AVX, AVX2, AVX512, FP16 and other optimizations
-# Therfore defining it manually may disable some of the optimizations
-# AVX is in dispatch, since not all CPUs have it
+# Therefore defining it manually may disable some of the optimizations
 # ARG CPU_DISPATCH=AVX,AVX2 \
 
 # OpenCV Python bindings
