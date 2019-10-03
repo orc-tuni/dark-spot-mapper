@@ -248,7 +248,7 @@ RUN cd C:\opencv-%OPENCV_VERSION% `
         -DPYTHON3_PACKAGES_PATH=C:\Miniconda3\Lib\site-packages
 
 # Monkey-patching OpenCV
-ADD .\patch_opencv.txt C:\TEMP\cv2_temp.cpp
+COPY .\patch_opencv.txt C:\TEMP\cv2_temp.cpp
 RUN powershell -Command " `
 	cd C:\opencv-%OPENCV_VERSION%\modules\videoio\src\; `
 	(Get-Content .\cap_dc1394_v2.cpp).replace('#include <unistd.h>', '').replace('#include <winsock2.h>', '#include <windows.h>') | Set-Content .\cap_dc1394_v2.cpp; `

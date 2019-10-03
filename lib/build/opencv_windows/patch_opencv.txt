@@ -1,3 +1,10 @@
+/// ---
 // Monkey-patched by Dockerfile
 #pragma comment(lib, "ws2_32.lib")
+
+// This should work as well
+// #pragma comment(lib, "WSock32.lib")
+
+// End of monkey-patching
+// ---
 
