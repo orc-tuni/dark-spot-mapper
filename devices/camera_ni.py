@@ -30,9 +30,10 @@ class CameraSettings(str, enum.Enum):
     SHUTTER = "Shutter"
 
 
-class NI_Camera(camera.Camera):
+class NI_Camera:
     """API for a NI Vision / IMAQdx FireWire camera"""
     def __init__(self, cam_name: str, cam_quality: int):
+        # super().__init__(cam_name)
         self.__cam_name = bytes(cam_name, encoding="ascii")
         self.__cam_quality = cam_quality
 

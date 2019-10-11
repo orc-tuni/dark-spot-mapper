@@ -34,7 +34,7 @@ __email__ = "mika.maki@tuni.fi"
 # Program modules
 import dsm_exceptions
 import stagecontrol
-from devices import camera_ni
+from devices import camera_opencv
 
 # GUI
 import tkinter
@@ -73,7 +73,7 @@ WINDOW_TITLE = "ORC Dark Spot Mapper"
 
 class QtDisp:
     """This class provides a window for the camera video"""
-    def __init__(self, camera: camera_ni.NI_Camera, auto_levels: bool):
+    def __init__(self, camera: camera_opencv.CameraCV, auto_levels: bool):
         self.__camera = camera
 
         self.__auto_levels = auto_levels
@@ -103,12 +103,15 @@ class QtDisp:
 
         :return: -
         """
-        self.__camera.save_pic("R:\\", "nivisiontemp", log=False)
+        # self.__camera.save_frame("R:\\nivisiontemp.png")
 
         # The camera.take_frame() saves the frame on a RAM disk since transporting the image directly from
         # NI Vision to Python would result in a memory leak
-        mat_img = matplotlib.image.imread("R:\\nivisiontemp.png")
-        transposed = np.transpose(mat_img)
+        # mat_img = matplotlib.image.imread("R:\\nivisiontemp.png")
+        # transposed = np.transpose(mat_img)
+
+        img = self.__camera.get_frame()
+        transposed = np.transpose(img) / 255
 
         if self.__auto_levels:
             self.__imv.setImage(transposed, autoLevels=True)
@@ -135,7 +138,7 @@ class DSM:
         self.__corner2 = (0, 0)
 
         # Camera variables
-        self.__camname = "cam0"
+        # self.__camname = "cam0"
         self.__camquality = 10000
         cam_label_texts = ["Auto Exposure", "Brightness", "Gain", "Gamma", "Sharpness", "Shutter"]
         cam_default_settings = [256, 1500, 0, 0, 4, 230]
@@ -144,7 +147,9 @@ class DSM:
         self.stages = stagecontrol.StageControl()
 
         # Camera setup
-        self.camera = camera_ni.NI_Camera(self.__camname, self.__camquality)
+        self.camera = camera_opencv.CameraCV()
+        self.camera.set_prop(camera_opencv.Props.ISO_SPEED, 800)
+        self.camera.set_resolution(width=1280, height=960)
 
         # Qt thread & window
 
@@ -352,33 +357,33 @@ class DSM:
         logger.info(text)
 
     def set_cam_settings(self) -> None:
-        cam_setting_texts = [
-            camera_ni.CameraSettings.AUTO_EXPOSURE,
-            camera_ni.CameraSettings.BRIGHTNESS,
-            camera_ni.CameraSettings.GAIN,
-            camera_ni.CameraSettings.GAMMA,
-            camera_ni.CameraSettings.SHARPNESS,
-            camera_ni.CameraSettings.SHUTTER
+        props = [
+            camera_opencv.Props.AUTO_EXPOSURE,
+            camera_opencv.Props.BRIGHTNESS,
+            camera_opencv.Props.GAIN,
+            camera_opencv.Props.GAMMA,
+            camera_opencv.Props.SHARPNESS,
+            camera_opencv.Props.EXPOSURE
         ]
         try:
-            for index, var in enumerate(self.__camVars):
+            for i, var in enumerate(self.__camVars):
                 value = int(var.get())
-                self.camera.set_cam_setting(cam_setting_texts[index], value)
+                self.camera.set_prop(props[i], value)
             self.info_text("Camera configuration successful")
         except IOError as e:
             self.info_text("Camera configuration failed: {}".format(e))
 
     def takepic(self) -> None:
-        self.camera.save_pic(self.__picVar.get(), self.__current_dir)
+        self.camera.save_frame(os.path.join(self.__current_dir, self.__picVar.get(), ".png"))
 
     def takepic_chip(self, chip_name: str, chip_path: str, number: int) -> None:
         filename = "{}_{}_{}".format(chip_name, self.__time_str, number)
-        self.camera.save_pic(filename, chip_path)
+        self.camera.save_frame(os.path.join(chip_path, filename))
 
     def takepic_area(self, name: str, path: str, number: int, total: int) -> None:
         padded_number = str(number).zfill(int(math.ceil(math.log10(total + 1))))
         filename = "{}_{}_{}".format(name, self.__time_str, padded_number)
-        self.camera.save_pic(filename, path)
+        self.camera.save_frame(os.path.join(filename, path))
 
     def qt_restart(self) -> None:
         if not self.qt_thread.is_alive():
@@ -581,43 +586,47 @@ class DSM:
 
             self.info_text("Measuring " + stitch_name)
             os.makedirs(directory)
+            path_base = os.path.join(
+                directory,
+                f"{basename}_{self.__time_str}_{stitch_name}_"
+            )
 
             self.stages.step_left(mstep)
             self.stages.step_up(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_1", directory)
+            self.camera.save_frame(path_base + "1")
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_2", directory)
+            self.camera.save_frame(path_base + "2")
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_3", directory)
+            self.camera.save_frame(path_base + "3")
 
             self.stages.step_down(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_4", directory)
+            self.camera.save_frame(path_base + "4")
 
             self.stages.step_left(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_5", directory)
+            self.camera.save_frame(path_base + "5")
 
             self.stages.step_left(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_6", directory)
+            self.camera.save_frame(path_base + "6")
 
             self.stages.step_down(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_7", directory)
+            self.camera.save_frame(path_base + "7")
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_8", directory)
+            self.camera.save_frame(path_base + "8")
 
             self.stages.step_right(mstep)
             time.sleep(sleep_time)
-            self.camera.save_pic(basename + "_" + self.__time_str + "_" + stitch_name + "_9", directory)
+            self.camera.save_frame(path_base + "9")
 
             self.stages.step_left(mstep)
             self.stages.step_up(mstep)
