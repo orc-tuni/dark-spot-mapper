@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from devices import ni_camera
+from devices import camera_ni
 
 CAMERA_NAME = "cam0"
 QUALITY = 10000
@@ -10,10 +10,10 @@ QUALITY = 10000
 class NICameraTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.camera = ni_camera.NI_Camera(CAMERA_NAME, QUALITY)
+        cls.camera = camera_ni.NI_Camera(CAMERA_NAME, QUALITY)
 
     def test_set_setting(self):
-        self.camera.set_cam_setting(ni_camera.CameraSettings.SHUTTER, 500)
+        self.camera.set_cam_setting(camera_ni.CameraSettings.SHUTTER, 500)
 
     def test_take_pic(self):
         self.camera.take_pic()

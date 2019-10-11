@@ -34,7 +34,7 @@ __email__ = "mika.maki@tuni.fi"
 # Program modules
 import dsm_exceptions
 import stagecontrol
-from devices import ni_camera
+from devices import camera_ni
 
 # GUI
 import tkinter
@@ -73,7 +73,7 @@ WINDOW_TITLE = "ORC Dark Spot Mapper"
 
 class QtDisp:
     """This class provides a window for the camera video"""
-    def __init__(self, camera: ni_camera.NI_Camera, auto_levels: bool):
+    def __init__(self, camera: camera_ni.NI_Camera, auto_levels: bool):
         self.__camera = camera
 
         self.__auto_levels = auto_levels
@@ -144,7 +144,7 @@ class DSM:
         self.stages = stagecontrol.StageControl()
 
         # Camera setup
-        self.camera = ni_camera.NI_Camera(self.__camname, self.__camquality)
+        self.camera = camera_ni.NI_Camera(self.__camname, self.__camquality)
 
         # Qt thread & window
 
@@ -353,12 +353,12 @@ class DSM:
 
     def set_cam_settings(self) -> None:
         cam_setting_texts = [
-            ni_camera.CameraSettings.AUTO_EXPOSURE,
-            ni_camera.CameraSettings.BRIGHTNESS,
-            ni_camera.CameraSettings.GAIN,
-            ni_camera.CameraSettings.GAMMA,
-            ni_camera.CameraSettings.SHARPNESS,
-            ni_camera.CameraSettings.SHUTTER
+            camera_ni.CameraSettings.AUTO_EXPOSURE,
+            camera_ni.CameraSettings.BRIGHTNESS,
+            camera_ni.CameraSettings.GAIN,
+            camera_ni.CameraSettings.GAMMA,
+            camera_ni.CameraSettings.SHARPNESS,
+            camera_ni.CameraSettings.SHUTTER
         ]
         try:
             for index, var in enumerate(self.__camVars):
