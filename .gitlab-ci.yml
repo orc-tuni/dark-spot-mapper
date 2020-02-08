@@ -1,6 +1,7 @@
 stages:
 - build
 - test
+- analyze
 
 build_libdc1394_windows:
   stage: build
@@ -49,3 +50,15 @@ lint:
   - pip --cache-dir=.pip install -r requirements.txt
   script:
   - pylint -j 0 *.py
+
+cloc:
+  stage: analyze
+  when: manual
+  image: alpine:latest
+  before_script:
+  - apk --no-cache add cloc
+  script:
+  - cloc . --exclude-list-file=clocignore.txt --report-file=cloc.txt --by-file-by-lang
+  artifacts:
+    paths:
+    - cloc.txt
