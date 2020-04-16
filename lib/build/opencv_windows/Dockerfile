@@ -187,7 +187,13 @@ RUN cd C:\libdc1394-cmake `
 # BUILD CONFIG
 
 # This has to be off if the resulting binaries are distributed in openly available repositories
-ARG OPENCV_ENABLE_NONFREE=ON
+# Currently enabling this results in a crash when processing opencv_tracking.vcxproj:
+# --- Crash output ---
+#  Generating Code...
+#  opencv_tracking.vcxproj -> C:\opencv-4.3.0\build_python\lib\Release\opencv_tracking430.lib
+# The command 'cmd /S /C cd C:\opencv-%OPENCV_VERSION%\build_python       && "C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --target opencv_python3 --parallel       && "C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --target opencv_python2 --parallel' returned a non-zero code: 1
+# ---
+ARG OPENCV_ENABLE_NONFREE=OFF
 
 # Require a somewhat recent CPU (>= 2010)
 ARG CPU_BASELINE=POPCNT,SSE,SSE2,SSE3,SSSE3,SSE4_1,SSE4_2
