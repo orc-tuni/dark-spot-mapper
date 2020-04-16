@@ -333,6 +333,17 @@ RUN cd C:\opencv-%OPENCV_VERSION%\build_python `
     && rmdir C:\opencv_contrib-%OPENCV_VERSION% /S /Q `
     && rmdir C:\TEMP /S /Q
 
+# Analyze the wheels
+RUN mkdir C:\TEMP `
+	&& "C:\Program Files\7-Zip\7z.exe" e C:\Wheels\opencv_python-*.whl -y -o"C:\TEMP" `
+	&& C:\BuildTools\Common7\Tools\VsDevCmd.bat `
+	&& dumpbin.exe C:\TEMP\cv2*.pyd /IMPORTS > C:\Wheels\Import_analysis.txt `
+	&& rmdir C:\TEMP /S /Q `
+	&& powershell -Command " `
+		cat C:\Wheels\Import_analysis.txt | Select-String -Pattern '.dll|.pyd' > C:\Wheels\Import_analysis_summary.txt;" `
+	&& echo If you get the error "ImportError: DLL load failed: The specified module could not be found.", please ensure that you have the following dll files in your system. You may need to add their locations to the PATH environment variable. `
+	&& type C:\Wheels\Import_analysis_summary.txt
+
 CMD ["powershell"]
 
 # Setuptools wheel files are saved in C:\Wheels
