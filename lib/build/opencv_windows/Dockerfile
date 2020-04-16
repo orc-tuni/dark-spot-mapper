@@ -100,6 +100,13 @@ RUN C:\Miniconda3\Scripts\conda.exe update -n base conda `
 # 	&& del C:\TEMP\gstreamer.msi `
 # 	&& del C:\TEMP\gstreamer-devel.msi
 
+# Download Eigen
+ARG EIGEN_VERSION=3.3.7
+RUN powershell -Command " `
+	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
+	Invoke-WebRequest https://gitlab.com/libeigen/eigen/-/archive/%EIGEN_VERSION%/eigen-%EIGEN_VERSION%.zip -OutFile C:\TEMP\eigen.zip; `
+	Expand-Archive -Path C:\TEMP\eigen.zip -DestinationPath C:\;" `
+	&& del C:\TEMP\eigen.zip
 
 # Download and extract OpenCV
 ARG OPENCV_VERSION=4.3.0
@@ -225,7 +232,9 @@ RUN cd C:\opencv-%OPENCV_VERSION% `
         # -DMKL_WITH_TBB=ON
 		-DWITH_DIRECTX=ON `
 		-DWITH_DSHOW=ON `
-        # -DWITH_EIGEN=ON
+        -DWITH_EIGEN=ON `
+		# The Eigen path must have only forward slashes
+		-DEIGEN_INCLUDE_PATH=C:/eigen-%EIGEN_VERSION% `
         -DWITH_IPP=ON `
         # -DWITH_LAPACK=ON
         -DWITH_OPENGL=ON `
