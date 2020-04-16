@@ -8,8 +8,8 @@
 # "libdc1394 error: Failed to initialize libdc1394" when run.
 
 # It should be possible to use a newer container version.
-# 1803 is selected since it's the Windows version on my work computer and therefore the latest supported container version.
-FROM mcr.microsoft.com/windows/servercore:1803
+# 1909 is selected since it's the Windows version on my work computer and therefore the latest supported container version.
+FROM mcr.microsoft.com/windows/servercore:1909
 
 # -----
 # Build Tools for Visual Studio 2019 installation
