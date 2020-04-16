@@ -1,5 +1,8 @@
 FROM ubuntu:latest
 
+# Please note that if OPENCV_ENABLE_NONFREE is enabled, the resulting binaries
+# cannot be distributed in openly available repositories.
+
 WORKDIR /
 
 # Install requirements

@@ -1,5 +1,8 @@
 # escape=`
 
+# Please note that if OPENCV_ENABLE_NONFREE is enabled, the resulting binaries
+# cannot be distributed in openly available repositories.
+
 # Build script for OpenCV with libdc1394 on Windows.
 # The resulting binary is not yet properly tested and may produce the error
 # "libdc1394 error: Failed to initialize libdc1394" when run.
