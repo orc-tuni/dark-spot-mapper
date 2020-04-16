@@ -46,6 +46,15 @@ RUN apt-get update \
         libgstreamer-plugins-base1.0-dev \
         # OpenGL
         libgtkglext1-dev \
+        # ---
+        # Additional codecs
+        # Might not be necessary to be installed during compilation.
+        # Installation on target machine may be sufficient.
+        # ---
+        gstreamer1.0-libav \
+        # Depends on libva2
+        gstreamer1.0-vaapi \
+        libavcodec-extra \
     #
     && apt-get autoremove -y \
     && apt-get clean
