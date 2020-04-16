@@ -79,7 +79,7 @@ RUN wget -nv https://github.com/VLAM3D/opencv-python/archive/${OPENCV_PYTHON_VER
 # BUILD CONFIG
 
 # This has to be off if the resulting binaries are distributed in openly available repositories
-ARG OPENCV_ENABLE_NONFREE=OFF
+ARG OPENCV_ENABLE_NONFREE=ON
 
 # Require a somewhat recent CPU (>= 2010)
 ARG CPU_BASELINE=POPCNT,SSE,SSE2,SSE3,SSSE3,SSE4_1,SSE4_2
