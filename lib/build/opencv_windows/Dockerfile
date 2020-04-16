@@ -136,7 +136,6 @@ RUN powershell -Command " `
 #     (Get-Content .\OpenCVModule.cmake).replace('${CMAKE_CURRENT_SOURCE_DIR}/${pch_path}precomp.hpp', 'C:/${CMAKE_CURRENT_SOURCE_DIR}/${pch_path}precomp.hpp') | Set-Content .\OpenCVModule.cmake;"
 
 # Libusb
-# RUN choco install 7zip -y
 # RUN powershell -Command " `
 #	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
 #	Invoke-WebRequest https://github.com/libusb/libusb/releases/download/v1.0.23/libusb-1.0.23.tar.bz2 -OutFile C:\TEMP\libusb.tar.bz2;"
@@ -256,7 +255,6 @@ RUN cd C:\opencv-%OPENCV_VERSION% `
 		# -DWITH_GSTREAMER=ON `
 		# -DGSTREAMER_DIR=C:\gstreamer\1.0\x86_64 `
         # Formats
-        # -DWITH_V4L=ON
         -DWITH_FFMPEG=ON `
         # Extra features
         -DBUILD_TIFF=ON `
