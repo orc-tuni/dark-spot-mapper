@@ -59,6 +59,38 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && apt-get clean
 
+# Install dependencies for LibVA and Intel Media SDK
+# RUN apt-get install -y \
+#     # Required common dependencies
+#     git cmake pkg-config \
+#     # LibVA dependencies
+#     meson libdrm-dev automake libtool \
+#     # Optional Media SDK dependencies
+#     libpciaccess-dev
+
+# Install LibVA for Intel Media MediaSDK
+# The LibVA packages from Ubuntu repositories would result in compilation errors
+# RUN git clone https://github.com/intel/libva.git \
+#     && cd libva \
+#     # Use latest tag for stability
+#     && git fetch --tags \
+#     && latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`) \
+#     && git checkout $latest_tag \
+#     && ./autogen.sh \
+#     && make \
+#     && make install
+
+# Install Intel Media SDK for hardware-accelerated encoding
+# https://software.intel.com/en-us/media-sdk
+# https://github.com/opencv/opencv/wiki/MediaSDK-encode-decode-backend
+# RUN git clone https://github.com/Intel-Media-SDK/MediaSDK msdk \
+#     && cd msdk \
+#     && mkdir build \
+#     && cd build \
+#     && cmake .. \
+#     && make \
+#     && make install
+
 # Use Miniconda to get Numpy linked with Intel MKL for maximum performance
 RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh \
     && wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh \
@@ -125,6 +157,8 @@ RUN cd /opencv-${OPENCV_VERSION} \
         # "ImportError: libmkl_intel_lp64.so: cannot open shared object file: No such file or directory"
         # -DWITH_MKL=ON
         -DWITH_TBB=ON \
+        # Intel Media SDK
+        # -DWITH_MFX=ON \
         # Formats
         -DWITH_V4L=ON \
         -DWITH_FFMPEG=ON \
