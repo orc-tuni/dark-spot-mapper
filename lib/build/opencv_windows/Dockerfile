@@ -92,7 +92,7 @@ RUN C:\Miniconda3\Scripts\conda.exe update -n base conda `
 
 
 # Download and extract OpenCV
-ARG OPENCV_VERSION=4.1.0
+ARG OPENCV_VERSION=4.3.0
 # By default the Invoke-WebRequest uses old crypto which GitHub does not support
 # https://github.com/cretueusebiu/valet-windows/issues/78#issuecomment-369824766
 RUN powershell -Command " `
