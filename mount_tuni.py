@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 
-"""Script for mounting Tampere University network drives"""
+"""Script for mounting Tampere University network drives
+
+SFTP access to Tampere University network drives was shut down on 2020-02-20,
+so this script no longer works.
+"""
 
 import os
 import subprocess
