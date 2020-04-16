@@ -90,6 +90,16 @@ RUN C:\Miniconda3\Scripts\conda.exe update -n base conda `
 # ARG PYTHON_VERSION=3.7
 # RUN conda create -y -n ocvpy3 python=%PYTHON_VERSION% blas=*=mkl numpy future mkl-devel
 
+# Install Gstreamer
+# RUN powershell -Command " `
+# 	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
+# 	Invoke-WebRequest https://gstreamer.freedesktop.org/data/pkg/windows/1.16.2/gstreamer-1.0-msvc-x86_64-1.16.2.msi -OutFile C:\TEMP\gstreamer.msi; `
+# 	Invoke-WebRequest https://gstreamer.freedesktop.org/data/pkg/windows/1.16.2/gstreamer-1.0-devel-msvc-x86_64-1.16.2.msi -OutFile C:\TEMP\gstreamer-devel.msi;" `
+# 	&& C:\TEMP\gstreamer.msi `
+# 	&& C:\TEMP\gstreamer-devel.msi `
+# 	&& del C:\TEMP\gstreamer.msi `
+# 	&& del C:\TEMP\gstreamer-devel.msi
+
 
 # Download and extract OpenCV
 ARG OPENCV_VERSION=4.3.0
@@ -224,6 +234,14 @@ RUN cd C:\opencv-%OPENCV_VERSION% `
         # "ImportError: libmkl_intel_lp64.so: cannot open shared object file: No such file or directory"
         # -DWITH_MKL=ON
         -DWITH_TBB=ON `
+		# Gstreamer
+		# Building with Gstreamer works, but the binary will require the following Gstreamer dlls when run:
+		# gstreamer-1.0-0.dll, gstapp-1.0-0.dll, gstriff-1.0-0.dll, gstpbutils-1.0-0.dll, glib-2.0-0.dll, gobject-2.0-0.dll
+		# Otherwise running the binary will result in
+		# "ImportError: DLL load failed: The specified module could not be found."
+		# However, so far I haven't been able to make this error go away, as adding these to PATH etc. has not helped.
+		# -DWITH_GSTREAMER=ON `
+		# -DGSTREAMER_DIR=C:\gstreamer\1.0\x86_64 `
         # Formats
         # -DWITH_V4L=ON
         -DWITH_FFMPEG=ON `
