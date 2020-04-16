@@ -24,10 +24,13 @@ RUN apt-get update \
         # ---
         # Optional packages
         # ---
+        libavresample-dev \
         # https://en.wikipedia.org/wiki/Eigen_(C%2B%2B_library)
         libeigen3-dev \
+        # For some reason neither liblapack nor libopenblas results in automatic detection of LAPACK installation
+        # liblapack-dev \
+        # libopenblas-dev \
         # Multi-core processing
-        libtbb2 \
         libtbb-dev \
         # Image formats
         libjpeg-dev \
@@ -43,9 +46,50 @@ RUN apt-get update \
         libgstreamer-plugins-base1.0-dev \
         # OpenGL
         libgtkglext1-dev \
+        # ---
+        # Additional codecs
+        # Might not be necessary to be installed during compilation.
+        # Installation on target machine may be sufficient.
+        # ---
+        gstreamer1.0-libav \
+        # Depends on libva2
+        gstreamer1.0-vaapi \
+        libavcodec-extra \
     #
     && apt-get autoremove -y \
     && apt-get clean
+
+# Install dependencies for LibVA and Intel Media SDK
+# RUN apt-get install -y \
+#     # Required common dependencies
+#     git cmake pkg-config \
+#     # LibVA dependencies
+#     meson libdrm-dev automake libtool \
+#     # Optional Media SDK dependencies
+#     libpciaccess-dev
+
+# Install LibVA for Intel Media MediaSDK
+# The LibVA packages from Ubuntu repositories would result in compilation errors
+# RUN git clone https://github.com/intel/libva.git \
+#     && cd libva \
+#     # Use latest tag for stability
+#     && git fetch --tags \
+#     && latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`) \
+#     && git checkout $latest_tag \
+#     && ./autogen.sh \
+#     && make \
+#     && make install
+
+# Install Intel Media SDK for hardware-accelerated encoding
+# https://software.intel.com/en-us/media-sdk
+# https://github.com/opencv/opencv/wiki/MediaSDK-encode-decode-backend
+# RUN git clone https://github.com/Intel-Media-SDK/MediaSDK msdk \
+#     && cd msdk \
+#     && mkdir build \
+#     && cd build \
+#     && cmake .. \
+#     && make \
+#     && make install
 
 # Use Miniconda to get Numpy linked with Intel MKL for maximum performance
 RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh \
@@ -79,7 +123,7 @@ RUN wget -nv https://github.com/VLAM3D/opencv-python/archive/${OPENCV_PYTHON_VER
 # BUILD CONFIG
 
 # This has to be off if the resulting binaries are distributed in openly available repositories
-ARG OPENCV_ENABLE_NONFREE=OFF
+ARG OPENCV_ENABLE_NONFREE=ON
 
 # Require a somewhat recent CPU (>= 2010)
 ARG CPU_BASELINE=POPCNT,SSE,SSE2,SSE3,SSSE3,SSE4_1,SSE4_2
@@ -113,6 +157,8 @@ RUN cd /opencv-${OPENCV_VERSION} \
         # "ImportError: libmkl_intel_lp64.so: cannot open shared object file: No such file or directory"
         # -DWITH_MKL=ON
         -DWITH_TBB=ON \
+        # Intel Media SDK
+        # -DWITH_MFX=ON \
         # Formats
         -DWITH_V4L=ON \
         -DWITH_FFMPEG=ON \
@@ -166,6 +212,8 @@ RUN cd /opencv-${OPENCV_VERSION}/build_python \
 
 # Setuptools wheel files are saved in /usr/local/etc/wheels
 # To copy the wheels to the host, create a container for example with
-# sudo docker run -it /bin/bash <image_name>
+# sudo docker run -it <image_name> /bin/bash
 # Then open another shell on the host and run (but with the correct version number)
 # sudo docker cp <container_name>:/usr/local/etc/wheels/opencv_python-4.3.0-cp36-cp36m-linux_x86_64.whl .
+# The container name is not the same as the image name, and you can get the container name with
+# sudo docker container ls
