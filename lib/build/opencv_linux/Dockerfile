@@ -62,7 +62,7 @@ ARG PYTHON_VERSION=3.6
 RUN conda create -y -n ocvpy3 python=${PYTHON_VERSION} blas=*=mkl numpy future mkl-devel
 
 # Download and extract OpenCV
-ARG OPENCV_VERSION=4.1.0
+ARG OPENCV_VERSION=4.3.0
 RUN mkdir /temp \
     && wget -nv https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip -O /temp/opencvcontrib-${OPENCV_VERSION}.zip \
     && wget -nv https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip -O /temp/opencv-${OPENCV_VERSION}.zip \
@@ -141,7 +141,7 @@ RUN cd /opencv-${OPENCV_VERSION}/build_python \
     # Create a directory for the wheels
     && mkdir -p /usr/local/etc/wheels \
     # Fix for finding OpenCV
-    && ln -s /opencv-4.1.0/modules/core/include/opencv2 /usr/local/include/opencv2 \
+    && ln -s /opencv-${OPENCV_VERSION}/modules/core/include/opencv2 /usr/local/include/opencv2 \
     && cd /opencv-python-${OPENCV_PYTHON_VERSION} \
     && python find_version.py \
     # Build Python 3 wheel
@@ -164,5 +164,5 @@ RUN cd /opencv-${OPENCV_VERSION}/build_python \
 # Setuptools wheel files are saved in /usr/local/etc/wheels
 # To copy the wheels to the host, create a container for example with
 # sudo docker run -it /bin/bash <image_name>
-# Then open another shell on the host and run
-# sudo docker cp <container_name>:/usr/local/etc/wheels/opencv_python-4.1.0-cp36-cp36m-linux_x86_64.whl .
+# Then open another shell on the host and run (but with the correct version number)
+# sudo docker cp <container_name>:/usr/local/etc/wheels/opencv_python-4.3.0-cp36-cp36m-linux_x86_64.whl .
