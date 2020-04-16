@@ -27,6 +27,9 @@ RUN apt-get update \
         libavresample-dev \
         # https://en.wikipedia.org/wiki/Eigen_(C%2B%2B_library)
         libeigen3-dev \
+        # For some reason neither liblapack nor libopenblas results in automatic detection of LAPACK installation
+        # liblapack-dev \
+        # libopenblas-dev \
         # Multi-core processing
         libtbb-dev \
         # Image formats
