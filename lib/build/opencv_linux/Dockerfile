@@ -24,6 +24,7 @@ RUN apt-get update \
         # ---
         # Optional packages
         # ---
+        libavresample-dev \
         # https://en.wikipedia.org/wiki/Eigen_(C%2B%2B_library)
         libeigen3-dev \
         # Multi-core processing
