@@ -27,7 +27,6 @@ RUN apt-get update \
         # https://en.wikipedia.org/wiki/Eigen_(C%2B%2B_library)
         libeigen3-dev \
         # Multi-core processing
-        libtbb2 \
         libtbb-dev \
         # Image formats
         libjpeg-dev \
