@@ -236,12 +236,16 @@ RUN cd C:\opencv-%OPENCV_VERSION% `
 		# The Eigen path must have only forward slashes
 		-DEIGEN_INCLUDE_PATH=C:/eigen-%EIGEN_VERSION% `
         -DWITH_IPP=ON `
-        # -DWITH_LAPACK=ON
+		# This may point to mkl_rt.lib, and result in requiring mkl_rt.dll to run
+        -DWITH_LAPACK=OFF `
         -DWITH_OPENGL=ON `
         -DWITH_OPENCL=ON `
         # Enabling MKL would result in
         # "ImportError: libmkl_intel_lp64.so: cannot open shared object file: No such file or directory"
-        # -DWITH_MKL=ON
+		# or
+		# "ImportError: DLL load failed: The specified module could not be found."
+		# The latter is caused by missing mkl_rt.dll
+        -DWITH_MKL=OFF `
         -DWITH_TBB=ON `
 		# Gstreamer
 		# Building with Gstreamer works, but the binary will require the following Gstreamer dlls when run:
