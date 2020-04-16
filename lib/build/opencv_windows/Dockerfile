@@ -1,11 +1,22 @@
 # escape=`
 
-# Please note that if OPENCV_ENABLE_NONFREE is enabled, the resulting binaries
-# cannot be distributed in openly available repositories.
-
 # Build script for OpenCV with libdc1394 on Windows.
 # The resulting binary is not yet properly tested and may produce the error
 # "libdc1394 error: Failed to initialize libdc1394" when run.
+
+# -----
+# Instructions
+# -----
+# Please note that if OPENCV_ENABLE_NONFREE is enabled, the resulting binaries
+# cannot be distributed in openly available repositories.
+
+# Building may take a lot of RAM, and by default Windows containers are limited to
+# something like 2 GB, which may not be enough. You can increase the maximum memory by running
+# docker build --memory=16G .
+
+# -----
+# Script starts here
+# -----
 
 # It should be possible to use a newer container version.
 # 1909 is selected since it's the Windows version on my work computer and therefore the latest supported container version.
@@ -172,7 +183,6 @@ RUN cd C:\libdc1394-cmake `
 		# -DCMAKE_EXE_LINKER_FLAGS="/NODEFAULTLIB"
 		# -DCMAKE_EXE_LINKER_FLAGS="/VERBOSE:LIB"
 	&& "C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --parallel
-
 
 # BUILD CONFIG
 
@@ -348,6 +358,6 @@ CMD ["powershell"]
 # To copy the wheels to the host, create a container for example with
 # docker run -it <image_name>
 # Then open another shell on the host and run
-# docker cp <container_name>:"C:\Wheels\opencv_python-4.1.0-cp37-cp37m-win_amd64.whl" .
+# docker cp <container_name>:"C:\Wheels\opencv_python-4.3.0-cp37-cp37m-win_amd64.whl" .
 # If you get the error "Error response from daemon: filesystem operations against a running Hyper-V container are not supported"
 # then you have to close the running container before copying
