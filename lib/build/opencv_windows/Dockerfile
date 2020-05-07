@@ -1,11 +1,22 @@
 # escape=`
 
-# Please note that if OPENCV_ENABLE_NONFREE is enabled, the resulting binaries
-# cannot be distributed in openly available repositories.
-
 # Build script for OpenCV with libdc1394 on Windows.
 # The resulting binary is not yet properly tested and may produce the error
 # "libdc1394 error: Failed to initialize libdc1394" when run.
+
+# -----
+# Instructions
+# -----
+# Please note that if OPENCV_ENABLE_NONFREE is enabled, the resulting binaries
+# cannot be distributed in openly available repositories.
+
+# Building may take a lot of RAM, and by default Windows containers are limited to
+# something like 2 GB, which may not be enough. You can increase the maximum memory by running
+# docker build --memory=16G .
+
+# -----
+# Script starts here
+# -----
 
 # It should be possible to use a newer container version.
 # 1909 is selected since it's the Windows version on my work computer and therefore the latest supported container version.
@@ -90,6 +101,23 @@ RUN C:\Miniconda3\Scripts\conda.exe update -n base conda `
 # ARG PYTHON_VERSION=3.7
 # RUN conda create -y -n ocvpy3 python=%PYTHON_VERSION% blas=*=mkl numpy future mkl-devel
 
+# Install Gstreamer
+# RUN powershell -Command " `
+# 	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
+# 	Invoke-WebRequest https://gstreamer.freedesktop.org/data/pkg/windows/1.16.2/gstreamer-1.0-msvc-x86_64-1.16.2.msi -OutFile C:\TEMP\gstreamer.msi; `
+# 	Invoke-WebRequest https://gstreamer.freedesktop.org/data/pkg/windows/1.16.2/gstreamer-1.0-devel-msvc-x86_64-1.16.2.msi -OutFile C:\TEMP\gstreamer-devel.msi;" `
+# 	&& C:\TEMP\gstreamer.msi `
+# 	&& C:\TEMP\gstreamer-devel.msi `
+# 	&& del C:\TEMP\gstreamer.msi `
+# 	&& del C:\TEMP\gstreamer-devel.msi
+
+# Download Eigen
+ARG EIGEN_VERSION=3.3.7
+RUN powershell -Command " `
+	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
+	Invoke-WebRequest https://gitlab.com/libeigen/eigen/-/archive/%EIGEN_VERSION%/eigen-%EIGEN_VERSION%.zip -OutFile C:\TEMP\eigen.zip; `
+	Expand-Archive -Path C:\TEMP\eigen.zip -DestinationPath C:\;" `
+	&& del C:\TEMP\eigen.zip
 
 # Download and extract OpenCV
 ARG OPENCV_VERSION=4.3.0
@@ -119,7 +147,6 @@ RUN powershell -Command " `
 #     (Get-Content .\OpenCVModule.cmake).replace('${CMAKE_CURRENT_SOURCE_DIR}/${pch_path}precomp.hpp', 'C:/${CMAKE_CURRENT_SOURCE_DIR}/${pch_path}precomp.hpp') | Set-Content .\OpenCVModule.cmake;"
 
 # Libusb
-# RUN choco install 7zip -y
 # RUN powershell -Command " `
 #	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
 #	Invoke-WebRequest https://github.com/libusb/libusb/releases/download/v1.0.23/libusb-1.0.23.tar.bz2 -OutFile C:\TEMP\libusb.tar.bz2;"
@@ -157,11 +184,16 @@ RUN cd C:\libdc1394-cmake `
 		# -DCMAKE_EXE_LINKER_FLAGS="/VERBOSE:LIB"
 	&& "C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --parallel
 
-
 # BUILD CONFIG
 
 # This has to be off if the resulting binaries are distributed in openly available repositories
-ARG OPENCV_ENABLE_NONFREE=ON
+# Currently enabling this results in a crash when processing opencv_tracking.vcxproj:
+# --- Crash output ---
+#  Generating Code...
+#  opencv_tracking.vcxproj -> C:\opencv-4.3.0\build_python\lib\Release\opencv_tracking430.lib
+# The command 'cmd /S /C cd C:\opencv-%OPENCV_VERSION%\build_python       && "C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --target opencv_python3 --parallel       && "C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --target opencv_python2 --parallel' returned a non-zero code: 1
+# ---
+ARG OPENCV_ENABLE_NONFREE=OFF
 
 # Require a somewhat recent CPU (>= 2010)
 ARG CPU_BASELINE=POPCNT,SSE,SSE2,SSE3,SSSE3,SSE4_1,SSE4_2
@@ -215,17 +247,30 @@ RUN cd C:\opencv-%OPENCV_VERSION% `
         # -DMKL_WITH_TBB=ON
 		-DWITH_DIRECTX=ON `
 		-DWITH_DSHOW=ON `
-        # -DWITH_EIGEN=ON
+        -DWITH_EIGEN=ON `
+		# The Eigen path must have only forward slashes
+		-DEIGEN_INCLUDE_PATH=C:/eigen-%EIGEN_VERSION% `
         -DWITH_IPP=ON `
-        # -DWITH_LAPACK=ON
+		# This may point to mkl_rt.lib, and result in requiring mkl_rt.dll to run
+        -DWITH_LAPACK=OFF `
         -DWITH_OPENGL=ON `
         -DWITH_OPENCL=ON `
         # Enabling MKL would result in
         # "ImportError: libmkl_intel_lp64.so: cannot open shared object file: No such file or directory"
-        # -DWITH_MKL=ON
+		# or
+		# "ImportError: DLL load failed: The specified module could not be found."
+		# The latter is caused by missing mkl_rt.dll
+        -DWITH_MKL=OFF `
         -DWITH_TBB=ON `
+		# Gstreamer
+		# Building with Gstreamer works, but the binary will require the following Gstreamer dlls when run:
+		# gstreamer-1.0-0.dll, gstapp-1.0-0.dll, gstriff-1.0-0.dll, gstpbutils-1.0-0.dll, glib-2.0-0.dll, gobject-2.0-0.dll
+		# Otherwise running the binary will result in
+		# "ImportError: DLL load failed: The specified module could not be found."
+		# However, so far I haven't been able to make this error go away, as adding these to PATH etc. has not helped.
+		# -DWITH_GSTREAMER=ON `
+		# -DGSTREAMER_DIR=C:\gstreamer\1.0\x86_64 `
         # Formats
-        # -DWITH_V4L=ON
         -DWITH_FFMPEG=ON `
         # Extra features
         -DBUILD_TIFF=ON `
@@ -302,12 +347,23 @@ RUN cd C:\opencv-%OPENCV_VERSION%\build_python `
     && rmdir C:\opencv_contrib-%OPENCV_VERSION% /S /Q `
     && rmdir C:\TEMP /S /Q
 
+# Analyze the wheels
+RUN mkdir C:\TEMP `
+	&& "C:\Program Files\7-Zip\7z.exe" e C:\Wheels\opencv_python-*.whl -y -o"C:\TEMP" `
+	&& C:\BuildTools\Common7\Tools\VsDevCmd.bat `
+	&& dumpbin.exe C:\TEMP\cv2*.pyd /IMPORTS > C:\Wheels\Import_analysis.txt `
+	&& rmdir C:\TEMP /S /Q `
+	&& powershell -Command " `
+		cat C:\Wheels\Import_analysis.txt | Select-String -Pattern '.dll|.pyd' > C:\Wheels\Import_analysis_summary.txt;" `
+	&& echo If you get the error "ImportError: DLL load failed: The specified module could not be found.", please ensure that you have the following dll files in your system. You may need to add their locations to the PATH environment variable. `
+	&& type C:\Wheels\Import_analysis_summary.txt
+
 CMD ["powershell"]
 
 # Setuptools wheel files are saved in C:\Wheels
 # To copy the wheels to the host, create a container for example with
 # docker run -it <image_name>
 # Then open another shell on the host and run
-# docker cp <container_name>:"C:\Wheels\opencv_python-4.1.0-cp37-cp37m-win_amd64.whl" .
+# docker cp <container_name>:"C:\Wheels\opencv_python-4.3.0-cp37-cp37m-win_amd64.whl" .
 # If you get the error "Error response from daemon: filesystem operations against a running Hyper-V container are not supported"
 # then you have to close the running container before copying
