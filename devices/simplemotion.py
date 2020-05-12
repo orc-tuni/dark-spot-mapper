@@ -21,6 +21,15 @@ sudo adduser YOUR_USERNAME dialout
 The udev rule may not be enough to keep libFTDI off the adapters, and you may have to disable the kernel modules with
 sudo modprobe -r ftdi_sio
 sudo modprobe -r usbserial
+
+To make the disabling of the kernel modules permanent, edit the file
+sudo nano /etc/modprobe.d/blacklist
+and add the lines
+blacklist ftdi_sio
+blacklist usbserial
+Then run
+sudo update-initramfs -u
+to apply the changes after the next reboot.
 """
 
 __author__ = "Mika Mäki"
