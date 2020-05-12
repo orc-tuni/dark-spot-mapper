@@ -1,11 +1,5 @@
 """This module provides Granite Devices SimpleMotion stage support for ORC Dark Spot Mapper
 
-On Ubuntu the package "musl-dev" is required by simplemotion64.so
-You will also have to manually create a symlink with
-sudo ln -s /usr/lib/x86_64-linux-musl/libc.so /usr/lib/libc.musl-x86_64.so.1
-
-TODO: Try compiling SimpleMotion in a Debian/Ubuntu Docker image instead of Alpine
-
 If SimpleMotion cannot find the motor drivers (and FTDI driver cannot find the USB adapters),
 check if there are USB serial device such as ttyUSB0 in /dev. If there are, it means that
 the kernel libFTDI driver has taken over the devices and the D2XX driver included in SimpleMotion
@@ -30,10 +24,15 @@ blacklist usbserial
 Then run
 sudo update-initramfs -u
 to apply the changes after the next reboot.
+
+If you have compiled the Linux binaries with Alpine and you run them on Ubuntu,
+you have to install the package "musl-dev".
+You will also have to manually create a symlink with
+sudo ln -s /usr/lib/x86_64-linux-musl/libc.so /usr/lib/libc.musl-x86_64.so.1
 """
 
 __author__ = "Mika Mäki"
-__copyright__ = "Copyright 2016-2019, Tampere University"
+__copyright__ = "Copyright 2016-2020, Tampere University"
 __credits__ = ["Mika Mäki"]
 __maintainer__ = "Mika Mäki"
 __email__ = "mika.maki@tuni.fi"
