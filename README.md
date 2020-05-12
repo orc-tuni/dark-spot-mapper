@@ -17,7 +17,7 @@ FireWire support is not included in the OpenCV available from PyPI, and custom b
 Docker-based build scripts for generating these binaries are provided in the repository.
 They have been confirmed to work on Linux, but on Windows they have not yet been properly tested.
 
-## Linear tages
+## Linear stages
 Currently this software supports only [SimpleMotion V1](https://granitedevices.com/wiki/SimpleMotion_library_versions) linear stages.
 Supported platforms are Linux (x86_64, arm32, arm64) and Windows (x86, x86_64).
 The ARM Linux support is tailored for the Raspberry Pi.
