@@ -4,7 +4,7 @@ Dark Spot Mapper is a measurement device at the Optoelectronics Research Centre 
 """
 
 __author__ = "Mika Mäki"
-__copyright__ = "Copyright 2017-2019, Tampere University"
+__copyright__ = "Copyright 2017-2020, Tampere University"
 __credits__ = ["Mika Mäki"]
 __maintainer__ = "Mika Mäki"
 __email__ = "mika.maki@tuni.fi"

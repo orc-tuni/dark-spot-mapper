@@ -26,7 +26,7 @@ TODO LIST
 """
 
 __author__ = "Mika Mäki"
-__copyright__ = "Copyright 2016-2019, Tampere University"
+__copyright__ = "Copyright 2016-2020, Tampere University"
 __credits__ = ["Mika Mäki"]
 __maintainer__ = "Mika Mäki"
 __email__ = "mika.maki@tuni.fi"
