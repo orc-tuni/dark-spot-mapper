@@ -41,6 +41,7 @@ import ctypes
 import enum
 import logging
 import os.path
+import platform
 import sys
 import typing as tp
 
@@ -146,9 +147,16 @@ class SmErrParameter(ValueError, SmException):
     pass
 
 
+__sm_name_arch = ""
 if sys.platform == "win32":
     __sm_name_type = ".dll"
 elif sys.platform == "linux":
+    __machine = platform.machine()
+    if __machine == "x86_64":
+        pass
+    # Todo: check if "arm" is correct for 32-bit ARM
+    elif __machine in ["arm", "aarch64"]:
+        __sm_name_arch = "_arm"
     __sm_name_type = ".so"
 else:
     logger.warning("Unknown operating system. Attempting to load SimpleMotion anyway.")
@@ -159,7 +167,7 @@ if sys.maxsize > 2**32:
 else:
     __sm_name_bitness = ""
 
-__sm_name = "simplemotion{}{}".format(__sm_name_bitness, __sm_name_type)
+__sm_name = f"simplemotion{__sm_name_arch}{__sm_name_bitness}{__sm_name_type}"
 __sm_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib", __sm_name)
 
 try:
