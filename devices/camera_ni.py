@@ -1,7 +1,7 @@
 """This module provides NI Vision / IMAQdx camera support for ORC Dark Spot Mapper"""
 
 __author__ = "Mika Mäki"
-__copyright__ = "Copyright 2016-2019, Tampere University"
+__copyright__ = "Copyright 2016-2020, Tampere University"
 __credits__ = ["Mika Mäki"]
 __maintainer__ = "Mika Mäki"
 __email__ = "mika.maki@tuni.fi"
@@ -21,6 +21,7 @@ from . import camera
 logger = logging.getLogger(__name__)
 
 
+@enum.unique
 class CameraSettings(str, enum.Enum):
     AUTO_EXPOSURE = "AutoExposure"
     BRIGHTNESS = "Brightness"
@@ -47,11 +48,11 @@ class NI_Camera:
             # self.__camid = nivision.IMAQdxOpenCamera(self.__camname, nivision.IMAQdxCameraControlModeListener)
             # nivision.IMAQdxConfigureAcquisition(self.__camid, 1, 1)
             open_end_time = time.perf_counter()
-            logger.debug("Opening camera took {} s".format(round(open_end_time - open_start_time, 2)))
+            logger.debug(f"Opening camera took {open_end_time - open_start_time:.2f} s")
             nivision.IMAQdxConfigureGrab(self.__camid)
         except (nivision.ImaqError, nivision.ImaqDxError) as e:
             logger.exception(e)
-            raise IOError("Could not connect to camera {}: {}".format(cam_name, e))
+            raise IOError(f"Could not connect to camera {cam_name}: {e}")
 
         # Initialise image objects
         self.__img_frame = nivision.imaqCreateImage(nivision.IMAQ_IMAGE_U8)
@@ -72,16 +73,16 @@ class NI_Camera:
             nivision.IMAQdxCloseCamera(self.__camid)
         except (nivision.ImaqError, nivision.ImaqDxError) as e:
             logger.exception(e)
-            logger.error("Closing camera failed: {}".format(e))
+            logger.error(f"Closing camera failed: {e}")
             raise e
 
     def set_cam_setting(self, name: CameraSettings, value: int) -> None:
-        full_name = "CameraAttributes::{}::Value".format(name)
+        full_name = f"CameraAttributes::{name}::Value"
         try:
             nivision.IMAQdxSetAttribute(self.__camid, bytes(full_name, encoding="ascii"), value)
         except (nivision.ImaqError, nivision.ImaqDxError) as e:
             logger.exception(e)
-            error_text = "Setting value {} for {} resulted in error {}".format(value, name, e)
+            error_text = f"Setting value {value} for {name} resulted in error {e}"
             logger.error(error_text)
             raise IOError(error_text)
 
@@ -106,15 +107,15 @@ class NI_Camera:
     def save_pic(self, directory: str, filename: str, log: bool = True) -> None:
         """Takes a picture to the hard drive"""
         if not directory or not os.path.isdir(directory):
-            raise ValueError("Invalid directory: {}".format(directory))
+            raise ValueError(f"Invalid directory: {directory}")
         elif not filename:
-            raise ValueError("Invalid filename: {}".format(filename))
+            raise ValueError(f"Invalid filename: {filename}")
 
         nivision.IMAQdxGrab(self.__camid, self.__img_pic, 1)
         nivision.imaqFlip(self.__img_pic_flipped, self.__img_pic, nivision.IMAQ_HORIZONTAL_AXIS)
         nivision.imaqFlip(self.__img_pic_flipped2, self.__img_pic_flipped, nivision.IMAQ_VERTICAL_AXIS)
 
-        path = "{}.png".format(os.path.join(directory, filename))
+        path = f"{os.path.join(directory, filename)}.png"
 
         if log:
             logger.info("Taking picture %s", path)

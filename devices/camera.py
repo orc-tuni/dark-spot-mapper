@@ -32,7 +32,7 @@ class Camera(abc.ABC):
         if self.__writer is not None:
             raise RuntimeError("Video recording is already active")
         if len(fourcc) != 4:
-            raise ValueError("Invalid fourcc: {}".format(fourcc))
+            raise ValueError(f"Invalid fourcc: {fourcc}")
         fourcc: int = cv2.VideoWriter_fourcc(fourcc[0], fourcc[1], fourcc[2], fourcc[3])
         self.__writer = cv2.VideoWriter(path, fourcc, fps)
 

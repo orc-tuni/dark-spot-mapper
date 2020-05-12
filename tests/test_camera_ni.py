@@ -24,8 +24,8 @@ class NICameraTest(unittest.TestCase):
         if os.path.exists(filename):
             raise RuntimeError("Test image already exists")
         self.camera.save_pic(directory=path, filename=filename)
-        file_path = "{}.png".format(os.path.join(path, filename))
+        file_path = f"{os.path.join(path, filename)}.png"
         if os.path.isfile(file_path):
             os.remove(file_path)
         else:
-            raise AssertionError("Image was not created at {}".format(file_path))
+            raise AssertionError(f"Image was not created at {file_path}")
