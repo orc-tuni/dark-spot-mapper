@@ -172,9 +172,9 @@ __sm_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 
 try:
     __smdll = ctypes.cdll.LoadLibrary(__sm_path)
-    logger.debug("Loaded SimpleMotion version: {}".format(__smdll.smGetVersion()))
+    logger.debug(f"Loaded SimpleMotion version: {__smdll.smGetVersion()}")
 except Exception as e:
-    logger.error("Loading of SimpleMotion from {} failed with error: {}".format(__sm_path, e))
+    logger.error(f"Loading of SimpleMotion from {__sm_path} failed with error: {e}")
     raise e
 
 
@@ -187,7 +187,7 @@ def list_devices() -> None:
 
     num_devs = ctypes.c_int32(0)
     ret = __smdll.FT_CreateDeviceInfoList(ctypes.byref(num_devs))
-    print("Found {} devices, got return code {}".format(num_devs.value, FT_Status(ret)))
+    print(f"Found {num_devs.value} devices, got return code {FT_Status(ret)}")
 
     # Create array class
     DeviceArray = FT_DEVICE_LIST_INFO_NODE * num_devs.value
@@ -195,7 +195,7 @@ def list_devices() -> None:
     arr = DeviceArray()
 
     ret = __smdll.FT_GetDeviceInfoList(ctypes.byref(arr), ctypes.byref(num_devs))
-    print("Got device info list with return code {}".format(FT_Status(ret)))
+    print(f"Got device info list with return code {FT_Status(ret)}")
 
     for i, dev in enumerate(arr):
         print("Device", i)
@@ -210,10 +210,10 @@ def list_devices() -> None:
     for i in range(len(arr)):
         handle = ctypes.c_void_p()
         ret = __smdll.FT_Open(i, ctypes.byref(handle))
-        print("Opened device {} to handle {} with return code {}".format(i, handle.value, FT_Status(ret)))
+        print(f"Opened device {i} to handle {handle.value} with return code {FT_Status(ret)}")
 
         ret = __smdll.FT_Close(handle)
-        print("Closed device {} from handle {} with return code {}".format(i, handle.value, ret))
+        print(f"Closed device {i} from handle {handle.value} with return code {ret}")
 
 
 # SimpleMotion API
@@ -256,13 +256,13 @@ def homing(axis: str, abort: bool = False):
 
 def move_abs(axis: str, steps: int):
     if steps < __ABS_TARGET_MIN or steps > __ABS_TARGET_MAX:
-        raise ValueError("Invalid absolute step count: {}".format(steps))
+        raise ValueError(f"Invalid absolute step count: {steps}")
     __smcommand(axis, SmCommand.ABSTARGET, steps)
 
 
 def move_inc(axis: str, steps: int):
     if steps < __INC_TARGET_MIN or steps > __INC_TARGET_MAX:
-        raise ValueError("Invalid incremental step count: {}".format(steps))
+        raise ValueError(f"Invalid incremental step count: {steps}")
     __smcommand(axis, SmCommand.INCTARGET, steps)
 
 
@@ -270,19 +270,19 @@ def move_inc(axis: str, steps: int):
 
 def set_velocity_limit(axis: str, limit: int):
     if limit < __LIMIT_MIN or limit > __LIMIT_MAX:
-        raise ValueError("Invalid velocity limit: {}".format(limit))
+        raise ValueError(f"Invalid velocity limit: {limit}")
     __set_param(axis, SmParam.VELOCITY_LIMIT, limit)
 
 
 def set_accel_limit(axis: str, limit: int):
     if limit < __LIMIT_MIN or limit > __LIMIT_MAX:
-        raise ValueError("Invalid acceleration limit: {}".format(limit))
+        raise ValueError(f"Invalid acceleration limit: {limit}")
     __set_param(axis, SmParam.ACCELERATION_LIMIT, limit)
 
 
 def set_control_mode(axis: str, mode: ControlMode):
     if mode not in ControlMode.__members__.values():
-        raise ValueError("Invalid control mode: {}".format(mode))
+        raise ValueError(f"Invalid control mode: {mode}")
     __set_param(axis, SmParam.CONTROL_MODE, mode)
 
 
@@ -299,7 +299,7 @@ def test(axis: str):
 def test_multi(axes: tp.List[str]) -> None:
     error_codes = [__smdll.smCommand(bytes(axis, encoding="ascii"), SmCommand.TESTCOMMUNICATION, 0) for axis in axes]
     if any(code != 0 for code in error_codes):
-        error_msg = "SimpleMotion connection test failed with codes {}".format(error_codes)
+        error_msg = f"SimpleMotion connection test failed with codes {error_codes}"
         logger.error(error_msg)
         raise SmException(error_msg)
 
@@ -316,7 +316,7 @@ def validate_status(status: SmStatus) -> None:
     elif status == SmStatus.SM_ERR_PARAMETER:
         raise SmErrParameter
     else:
-        raise RuntimeError("Unknown SM_STATUS: {}".format(status))
+        raise RuntimeError(f"Unknown SM_STATUS: {status}")
 
 
 if __name__ == "__main__":
