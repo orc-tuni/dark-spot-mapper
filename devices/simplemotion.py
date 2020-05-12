@@ -1,34 +1,6 @@
 """This module provides Granite Devices SimpleMotion stage support for ORC Dark Spot Mapper
 
-If SimpleMotion cannot find the motor drivers (and FTDI driver cannot find the USB adapters),
-check if there are USB serial device such as ttyUSB0 in /dev. If there are, it means that
-the kernel libFTDI driver has taken over the devices and the D2XX driver included in SimpleMotion
-cannot therefore talk to them. To resolve this, you'll have to copy the udev rule
-"99-simplemotion.rules" to /etc/udev/rules.d
-Then run
-udevadm control --reload-rules && udevadm trigger
-to apply the changes.
-This rule also gives the proper permissions for the devices, but you may have to allow your user to use the serial
-ports with the command
-sudo adduser YOUR_USERNAME dialout
-
-The udev rule may not be enough to keep libFTDI off the adapters, and you may have to disable the kernel modules with
-sudo modprobe -r ftdi_sio
-sudo modprobe -r usbserial
-
-To make the disabling of the kernel modules permanent, edit the file
-sudo nano /etc/modprobe.d/blacklist
-and add the lines
-blacklist ftdi_sio
-blacklist usbserial
-Then run
-sudo update-initramfs -u
-to apply the changes after the next reboot.
-
-If you have compiled the Linux binaries with Alpine and you run them on Ubuntu,
-you have to install the package "musl-dev".
-You will also have to manually create a symlink with
-sudo ln -s /usr/lib/x86_64-linux-musl/libc.so /usr/lib/libc.musl-x86_64.so.1
+See the project readme for further documentation.
 """
 
 __author__ = "Mika Mäki"
