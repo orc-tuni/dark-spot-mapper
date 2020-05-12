@@ -57,6 +57,7 @@ __LIMIT_MAX = 32767
 __WATCHDOG_MAX = 32767
 
 
+@enum.unique
 class ControlMode(enum.IntEnum):
     POSITION = 1
     VELOCITY = 2
@@ -75,6 +76,7 @@ class FT_DEVICE_LIST_INFO_NODE(ctypes.Structure):
     ]
 
 
+@enum.unique
 class FT_Status(enum.IntEnum):
     FT_OK = 0
     FT_DEVICE_NOT_FOUND = 2
@@ -96,6 +98,7 @@ class FT_Status(enum.IntEnum):
     FT_OTHER_ERROR = 18
 
 
+@enum.unique
 class SmCommand(bytes, enum.Enum):
     ABSTARGET = b"ABSTARGET"
     CLEARFAULTS = b"CLEARFAULTS"
@@ -105,6 +108,7 @@ class SmCommand(bytes, enum.Enum):
     TESTCOMMUNICATION = b"TESTCOMMUNICATION"
 
 
+@enum.unique
 class SmParam(bytes, enum.Enum):
     VELOCITY_LIMIT = b"VelocityLimit"
     ACCELERATION_LIMIT = b"AccelerationLimit"
@@ -119,6 +123,7 @@ class SmParam(bytes, enum.Enum):
     ACTUAL_TORQUE = b"ActualTorque"
 
 
+@enum.unique
 class SmStatus(enum.IntEnum):
     SM_OK = 0
     SM_ERR_NODEVICE = 1
