@@ -7,12 +7,12 @@ WORKDIR /
 
 # Install requirements
 RUN apt-get update \
-    && apt-get install -y \
+    # cmake requires tzdata which would prompt for timezone settings during the installation
+    && DEBIAN_FRONTEND="noninteractive" apt-get install -y \
         # ---
         # Required packages
         # ---
         cmake \
-        libgtk2.0-dev \
         pkg-config \
         libavcodec-dev \
         libavformat-dev \
@@ -24,16 +24,31 @@ RUN apt-get update \
         # ---
         # Optional packages
         # ---
-        libavresample-dev \
-        # https://en.wikipedia.org/wiki/Eigen_(C%2B%2B_library)
-        libeigen3-dev \
+        # BLAS & LAPACK
+        libatlas-base-dev \
         # For some reason neither liblapack nor libopenblas results in automatic detection of LAPACK installation
         # liblapack-dev \
         # libopenblas-dev \
+        # Caffe for the opencv_cnn_obj3d module
+        libcaffe-cpu-dev \
+        # OpenCV Structure from Motion (sfm) modules
+        # https://docs.opencv.org/4.3.0/db/db8/tutorial_sfm_installation.html
+        libgflags-dev \
+        libgoogle-glog-dev \
+        # Optional FFmpeg stuff
+        libavresample-dev \
+        # GTK+2 and GTK+3 bindings cannot be enabled simultaneously
+        # https://docs.opencv.org/4.3.0/d2/de6/tutorial_py_setup_in_ubuntu.html
+        # libgtk2.0-dev
+        libgtk-3-dev \
+        qt5-default \
+        # https://en.wikipedia.org/wiki/Eigen_(C%2B%2B_library)
+        libeigen3-dev \
         # Multi-core processing
         libtbb-dev \
         # Image formats
         libjpeg-dev \
+        libopenexr-dev \
         libpng-dev \
         libtiff-dev \
         libwebp-dev \
@@ -45,6 +60,7 @@ RUN apt-get update \
         libgstreamer1.0-dev \
         libgstreamer-plugins-base1.0-dev \
         # OpenGL
+        # This package recommended for OpenCV is for GTK+2 only
         libgtkglext1-dev \
         # ---
         # Additional codecs
@@ -105,7 +121,7 @@ ENV PATH /opt/conda/bin:$PATH
 RUN conda create -y -n ocvpy2 python=2.7 blas=*=mkl numpy future mkl-devel
 
 # Create Conda environment for Python 3
-ARG PYTHON_VERSION=3.6
+ARG PYTHON_VERSION=3.8
 RUN conda create -y -n ocvpy3 python=${PYTHON_VERSION} blas=*=mkl numpy future mkl-devel
 
 # Download and extract OpenCV
@@ -116,7 +132,7 @@ RUN mkdir /temp \
     && unzip /temp/opencv-${OPENCV_VERSION}.zip \
     && unzip /temp/opencvcontrib-${OPENCV_VERSION}.zip
 
-ENV OPENCV_PYTHON_VERSION="9.2"
+ARG OPENCV_PYTHON_VERSION=9.2
 RUN wget -nv https://github.com/VLAM3D/opencv-python/archive/${OPENCV_PYTHON_VERSION}.zip -O /temp/opencv-python.zip \
     && unzip /temp/opencv-python.zip
 
@@ -163,6 +179,10 @@ RUN cd /opencv-${OPENCV_VERSION} \
         -DWITH_V4L=ON \
         -DWITH_FFMPEG=ON \
         # Extra features
+        # The GTK flags may not work when Qt is enabled
+        -DWITH_GTK=ON \
+        -DWITH_GTK3=ON \
+        -DWITH_QT=ON \
         -DBUILD_TIFF=ON \
         -DBUILD_opencv_java=OFF \
         -DBUILD_opencv_legacy=OFF \
@@ -214,6 +234,6 @@ RUN cd /opencv-${OPENCV_VERSION}/build_python \
 # To copy the wheels to the host, create a container for example with
 # sudo docker run -it <image_name> /bin/bash
 # Then open another shell on the host and run (but with the correct version number)
-# sudo docker cp <container_name>:/usr/local/etc/wheels/opencv_python-4.3.0-cp36-cp36m-linux_x86_64.whl .
+# sudo docker cp <container_name>:/usr/local/etc/wheels/opencv_python-4.3.0-cp38-cp38m-linux_x86_64.whl .
 # The container name is not the same as the image name, and you can get the container name with
 # sudo docker container ls
