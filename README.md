@@ -17,6 +17,12 @@ FireWire support is not included in the OpenCV available from PyPI, and custom b
 Docker-based build scripts for generating these binaries are provided in the repository.
 They have been confirmed to work on Linux, but on Windows they have not yet been properly tested.
 
+Running the custom OpenCV builds may require the installation of various dependencies such as
+libhdf5-103 (included in hdf5-tools), libgoogle-glog0v5 and libtbb2.
+Depending on the build you're using, you may not need all of these.
+Python will inform you of the missing libraries when you attempt to start the software, so you should
+install the versions requested by Python.
+
 ## Linear stages
 Currently this software supports only [SimpleMotion V1](https://granitedevices.com/wiki/SimpleMotion_library_versions) linear stages.
 Supported platforms are Linux (x86_64, arm32, arm64) and Windows (x86, x86_64).
