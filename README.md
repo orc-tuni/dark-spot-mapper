@@ -45,7 +45,7 @@ The udev rule may not be enough to keep libFTDI off the adapters, and you may ha
 `sudo modprobe -r ftdi_sio` and
 `sudo modprobe -r usbserial`.
 To make the disabling of the kernel modules permanent, edit the file
-sudo nano /etc/modprobe.d/blacklist
+`sudo nano /etc/modprobe.d/blacklist-ftdi.conf`
 and add the lines
 `blacklist ftdi_sio` and
 `blacklist usbserial`
