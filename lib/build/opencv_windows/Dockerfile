@@ -14,6 +14,10 @@
 # something like 2 GB, which may not be enough. You can increase the maximum memory by running
 # docker build --memory=16G .
 
+# If the container cannot connect to Internet when the host is on Wi-Fi, please ensure
+# that the Wi-Fi adapter has a high enough priority, or just plug the host to a wired internet connection.
+# https://github.com/docker/for-win/issues/2760#issuecomment-430889666
+
 # -----
 # Script starts here
 # -----
