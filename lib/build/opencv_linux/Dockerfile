@@ -234,6 +234,6 @@ RUN cd /opencv-${OPENCV_VERSION}/build_python \
 # To copy the wheels to the host, create a container for example with
 # sudo docker run -it <image_name> /bin/bash
 # Then open another shell on the host and run (but with the correct version number)
-# sudo docker cp <container_name>:/usr/local/etc/wheels/opencv_python-4.3.0-cp38-cp38m-linux_x86_64.whl .
+# sudo docker cp <container_name>:/usr/local/etc/wheels/opencv_python-4.3.0-cp38-cp38-linux_x86_64.whl .
 # The container name is not the same as the image name, and you can get the container name with
 # sudo docker container ls
