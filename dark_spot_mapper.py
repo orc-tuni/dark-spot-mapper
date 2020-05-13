@@ -31,6 +31,9 @@ __credits__ = ["Mika Mäki"]
 __maintainer__ = "Mika Mäki"
 __email__ = "mika.maki@tuni.fi"
 
+# PyQt[Graph] has to be loaded before OpenCV to ensure that the correct Qt libraries are loaded
+import pyqtgraph as pg
+
 # Program modules
 import dsm_exceptions
 import stagecontrol
@@ -48,9 +51,8 @@ import time
 import os.path
 
 # Graphing
-import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
-import matplotlib.image
+# import matplotlib.image
 import numpy as np
 
 # Debugging
