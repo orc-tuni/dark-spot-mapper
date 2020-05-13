@@ -28,12 +28,19 @@ RUN dpkg --add-architecture armhf \
         python3-dev \
         python3-numpy \
         python3-pip \
-        python3-setuptools
+        python3-setuptools \
         libpython2-dev:armhf \
         libpython3-dev:armhf \
         # ---
         # Optional packages
         # ---
+        # Caffe for the opencv_cnn_obj3d module
+        libcaffe-cpu-dev:armhf \
+        # OpenCV Structure from Motion (sfm) modules
+        # https://docs.opencv.org/4.3.0/db/db8/tutorial_sfm_installation.html
+        libgflags-dev:armhf \
+        libgoogle-glog-dev:armhf \
+        #
         libeigen3-dev:armhf \
         libavcodec-dev:armhf \
         libavformat-dev:armhf \
@@ -41,6 +48,7 @@ RUN dpkg --add-architecture armhf \
         libswscale-dev:armhf \
         zlib1g-dev:armhf \
         # GUI
+        qt5-default:armhf \
         # GTK 3 bindings seem not show up in the OpenCV build configuration
         libgtk-3-dev:armhf \
         libcanberra-gtk3-dev:armhf \
@@ -57,9 +65,10 @@ RUN dpkg --add-architecture armhf \
         libgstreamer-plugins-base1.0-dev:armhf \
         # Image formats
         libjpeg-dev:armhf \
+        libopenexr-dev:armhf \
         libpng-dev:armhf \
-        libswscale-dev:armhf \
         libtiff-dev:armhf \
+        libwebp-dev:armhf \
         # Video formats
         libv4l-dev:armhf \
         libx264-dev:armhf \
@@ -137,6 +146,11 @@ RUN cd /opencv-${OPENCV_VERSION} \
         -DWITH_V4L=ON \
         -DWITH_FFMPEG=ON \
         # Extra features
+        # The GTK flags may not work when Qt is enabled
+        -DWITH_GTK=ON \
+        -DWITH_GTK3=ON \
+        # Building with Qt will likely require manual configuration of the Qt installation path
+        # -DWITH_QT=ON
         -DBUILD_TIFF=ON \
         -DBUILD_opencv_java=OFF \
         -DBUILD_opencv_legacy=OFF \
@@ -183,3 +197,5 @@ RUN cd /opencv-${OPENCV_VERSION}/build_python \
     && rm -rf /opencv-${OPENCV_VERSION} \
     && rm -rf /opencv_contrib-${OPENCV_VERSION} \
     && rm -rf /temp
+
+# TODO: rename the wheels to be arm instead of x86_64
