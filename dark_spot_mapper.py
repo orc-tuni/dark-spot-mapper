@@ -150,8 +150,14 @@ class DSM:
 
         # Camera setup
         self.camera = camera_opencv.CameraCV()
-        self.camera.set_prop(camera_opencv.Props.ISO_SPEED, 800)
-        self.camera.set_resolution(width=1280, height=960)
+        try:
+            self.camera.set_prop(camera_opencv.Props.ISO_SPEED, 800)
+        except ValueError as e:
+            logger.warning(f"Could not set ISO speed for the camera: {e}")
+        try:
+            self.camera.set_resolution(width=1280, height=960)
+        except ValueError as e:
+            logger.warning(f"Could not set camera resolution: {e}")
 
         # Qt thread & window
 
@@ -372,8 +378,8 @@ class DSM:
                 value = int(var.get())
                 self.camera.set_prop(props[i], value)
             self.info_text("Camera configuration successful")
-        except IOError as e:
-            self.info_text("Camera configuration failed: {}".format(e))
+        except (IOError, ValueError) as e:
+            self.info_text(f"Camera configuration failed: {e}")
 
     def takepic(self) -> None:
         self.camera.save_frame(os.path.join(self.__current_dir, self.__picVar.get(), ".png"))
