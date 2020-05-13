@@ -132,7 +132,7 @@ RUN powershell -Command " `
 	&& del C:\TEMP\opencvcontrib-%OPENCV_VERSION%.zip `
 	&& del C:\TEMP\opencv-%OPENCV_VERSION%.zip
 
-ENV OPENCV_PYTHON_VERSION=9.2
+ARG OPENCV_PYTHON_VERSION=9.2
 RUN powershell -Command " `
 	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
 	Invoke-WebRequest https://github.com/VLAM3D/opencv-python/archive/%OPENCV_PYTHON_VERSION%.zip -OutFile C:\TEMP\opencv-python-%OPENCV_PYTHON_VERSION%.zip; `
