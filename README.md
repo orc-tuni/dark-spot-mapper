@@ -12,7 +12,7 @@ As of 2020 the software is fully functional, but the user interface (dark_spot_m
 
 ## Cameras
 Supported libraries are National Instruments NI Vision / IMAQdx and OpenCV (USB webcams, FireWire etc.).
-OpenCV is recommended, as the National Instrumenst support is Windows-only and deprecated.
+OpenCV is recommended, as the National Instruments support is practically Windows-only and deprecated.
 FireWire support is not included in the OpenCV available from PyPI, and custom binaries have to be used instead.
 Docker-based build scripts for generating these binaries are provided in the repository.
 They have been confirmed to work on Linux, but on Windows they have not yet been properly tested.
