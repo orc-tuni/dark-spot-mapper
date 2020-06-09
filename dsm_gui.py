@@ -1,9 +1,9 @@
 import numpy as np
-from PyQt5.QtWidgets import \
+from PySide2.QtWidgets import \
     QDockWidget, QMainWindow, QLabel, QLineEdit, QPushButton, QRadioButton, QWidget, \
     QBoxLayout, QGridLayout, QVBoxLayout, \
     QApplication, QSizePolicy
-from PyQt5 import QtCore
+from PySide2 import QtCore
 import pyqtgraph as pg
 
 import devices.camera_opencv as cv

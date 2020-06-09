@@ -1,7 +1,7 @@
 import logging
 import time
 
-from PyQt5 import QtWidgets
+from PySide2 import QtWidgets
 
 from devices.camera_opencv import CameraCV
 import dsm_gui

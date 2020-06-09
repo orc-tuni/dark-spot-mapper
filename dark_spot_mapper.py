@@ -98,7 +98,7 @@ class QtDisp:
         timer.timeout.connect(self.take_frame)
         timer.start(50)
 
-        app.exec()
+        app.exec_()
 
     def take_frame(self) -> None:
         """Fetches a frame from the camera and displays it

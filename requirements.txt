@@ -6,5 +6,9 @@ opencv-python >= 4.2.0.34
 pillow >= 7.1.2
 pylint >= 2.5.2
 pynivision >= 2015.0.0
-PyQt5 >= 5.12
-pyqtgraph >= 0.10.0
+# PyQt5 is GPL-licensed
+# PyQt5 >= 5.12
+# PySide2 is LGPL-licensed
+# If PyQtGraph cannot find PySide2, please recreate the virtualenv.
+pyside2 >= 5.15.0
+pyqtgraph >= 0.11.0
