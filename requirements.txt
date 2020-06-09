@@ -1,10 +1,10 @@
 matplotlib >= 3.2.1
-numpy >= 1.18.4
+numpy >= 1.18.5
 objgraph >= 3.4.1
 # For FireWire cameras please use the custom builds in the lib folder
 opencv-python >= 4.2.0.34
 pillow >= 7.1.2
-pylint >= 2.5.2
+pylint >= 2.5.3
 pynivision >= 2015.0.0
 # PyQt5 is GPL-licensed
 # PyQt5 >= 5.12
