@@ -86,7 +86,9 @@ RUN powershell -Command " `
 	&& C:\TEMP\Miniconda3-latest-Windows-x86_64.exe /InstallationType=AllUsers /AddToPath=1 /RegisterPython=1 /S /D=C:\Miniconda3 `
 	&& del C:\TEMP\Miniconda3-latest-Windows-x86_64.exe
 
-RUN C:\Miniconda3\Scripts\conda.exe update -n base conda `
+ARG PYTHON_VERSION=3.8
+RUN C:\Miniconda3\Scripts\conda.exe install python=%PYTHON_VERSION% `
+	&& C:\Miniconda3\Scripts\conda.exe update -n base conda python `
 	&& C:\Miniconda3\Scripts\conda.exe install blas=*=mkl numpy future mkl-devel
 
 # Python installation with conda environments
