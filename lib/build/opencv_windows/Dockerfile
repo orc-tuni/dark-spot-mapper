@@ -41,17 +41,11 @@ SHELL ["cmd", "/S", "/C"]
 # Set up environment to collect install errors.
 COPY Install.cmd C:\TEMP\
 
-# Download channel for fixed install.
-ARG CHANNEL_URL=https://aka.ms/vs/16/release/channel
-
 # Download required files
-# ADD https://aka.ms/vscollect.exe C:\TEMP\collect.exe
-# ADD ${CHANNEL_URL} C:\TEMP\VisualStudio.chman
-# ADD https://aka.ms/vs/16/release/vs_buildtools.exe C:\TEMP\vs_buildtools.exe
 RUN powershell -Command " `
 	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
 	Invoke-WebRequest https://aka.ms/vscollect.exe -OutFile C:\TEMP\collect.exe; `
-	Invoke-WebRequest %CHANNEL_URL% -OutFile C:\TEMP\VisualStudio.chman; `
+	Invoke-WebRequest https://aka.ms/vs/16/release/channel -OutFile C:\TEMP\VisualStudio.chman; `
 	Invoke-WebRequest https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile C:\TEMP\vs_buildtools.exe;"
 
 # Download and install build tools for native desktop workload.
