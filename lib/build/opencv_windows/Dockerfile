@@ -23,8 +23,8 @@
 # -----
 
 # It should be possible to use a newer container version.
-# 1909 is selected since it's the Windows version on my work computer and therefore the latest supported container version.
-FROM mcr.microsoft.com/windows/servercore:1909
+# 2004 is selected since it's the Windows version on my work computer and therefore the latest supported container version.
+FROM mcr.microsoft.com/windows/servercore:2004
 
 # -----
 # Build Tools for Visual Studio 2019 installation
