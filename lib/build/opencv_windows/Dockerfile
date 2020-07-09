@@ -122,6 +122,8 @@ RUN powershell -Command " `
 	&& del C:\TEMP\eigen.zip
 
 # Download and extract OpenCV
+# You can check the latest version number here
+# https://github.com/opencv/opencv/releases
 ARG OPENCV_VERSION=4.3.0
 # By default the Invoke-WebRequest uses old crypto which GitHub does not support
 # https://github.com/cretueusebiu/valet-windows/issues/78#issuecomment-369824766
@@ -134,6 +136,8 @@ RUN powershell -Command " `
 	&& del C:\TEMP\opencvcontrib-%OPENCV_VERSION%.zip `
 	&& del C:\TEMP\opencv-%OPENCV_VERSION%.zip
 
+# You can check the latest version number here
+# https://github.com/VLAM3D/opencv-python/releases
 ARG OPENCV_PYTHON_VERSION=9.2
 RUN powershell -Command " `
 	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; `
