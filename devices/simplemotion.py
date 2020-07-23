@@ -144,6 +144,7 @@ if sys.maxsize > 2**32:
 else:
     __sm_name_bitness = ""
 
+# Using an absolute path is necessary especially if Python is installed from Microsoft Store
 __sm_name = f"simplemotion{__sm_name_arch}{__sm_name_bitness}{__sm_name_type}"
 __sm_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib", __sm_name)
 
