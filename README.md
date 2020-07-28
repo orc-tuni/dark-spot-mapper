@@ -1,8 +1,5 @@
 # Dark Spot Mapper
 
-## This project has been moved to GitHub
-[https://github.com/orc-tuni/dark-spot-mapper](https://github.com/orc-tuni/dark-spot-mapper)
-
 [![pipeline status](https://gitlab.com/AgenttiX/vxl-dark-spot-mapper/badges/master/pipeline.svg)](https://gitlab.com/AgenttiX/vxl-dark-spot-mapper/commits/master)
 [![coverage report](https://gitlab.com/AgenttiX/vxl-dark-spot-mapper/badges/master/coverage.svg)](https://gitlab.com/AgenttiX/vxl-dark-spot-mapper/commits/master)
 
