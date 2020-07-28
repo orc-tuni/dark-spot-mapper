@@ -7,7 +7,9 @@ Dark Spot Mapper is a measurement system for imaging laser wafers and samples.
 It consists of a camera and a three-axis linear stage system.
 
 Developed by
-[Mika Mäki](https://www.linkedin.com/in/mikamaki/) 2016-2020 for the Optoelectronics Research Centre of Tampere University.
+[Mika Mäki](https://www.linkedin.com/in/mikamaki/) 2016-2020 for the
+[Optoelectronics Research Centre of Tampere University](https://research.tuni.fi/orc/) and
+[Vexlum Ltd](https://vexlum.com/).
 
 As of 2020 the software is fully functional, but the user interface (dark_spot_mapper.py) is waiting for a major rework.
 
