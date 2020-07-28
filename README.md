@@ -6,12 +6,15 @@
 Dark Spot Mapper is a measurement system for imaging laser wafers and samples.
 It consists of a camera and a three-axis linear stage system.
 
-Developed by Mika Mäki 2016-2020 for the Optoelectronics Research Centre of Tampere University.
+Developed by
+[Mika Mäki](https://www.linkedin.com/in/mikamaki/) 2016-2020 for the Optoelectronics Research Centre of Tampere University.
 
 As of 2020 the software is fully functional, but the user interface (dark_spot_mapper.py) is waiting for a major rework.
 
 ## Cameras
-Supported libraries are National Instruments NI Vision / IMAQdx and OpenCV (USB webcams, FireWire etc.).
+Supported libraries are National Instruments NI Vision / IMAQdx and
+[OpenCV](https://github.com/opencv/opencv)
+(USB webcams, FireWire etc.).
 OpenCV is recommended, as the National Instruments support is practically Windows-only and deprecated.
 FireWire support is not included in the OpenCV available from PyPI, and custom binaries have to be used instead.
 Docker-based build scripts for generating these binaries are provided in the repository.
@@ -24,7 +27,9 @@ Python will inform you of the missing libraries when you attempt to start the so
 install the versions requested by Python.
 
 ## Linear stages
-Currently this software supports only [SimpleMotion V1](https://granitedevices.com/wiki/SimpleMotion_library_versions) linear stages.
+Currently this software supports only
+Granite Devices [SimpleMotion V1](https://granitedevices.com/wiki/SimpleMotion_library_versions)
+linear stages.
 Supported platforms are Linux (x86_64, arm32, arm64) and Windows (x86, x86_64).
 The ARM Linux support is tailored for the Raspberry Pi.
 The included binaries have been generated using the Docker build scripts of this repository.
