@@ -11,4 +11,3 @@ class AbortException(Exception):
     """
     The purpose of this exception is to stop measurement threads when the abort button is clicked
     """
-    pass
