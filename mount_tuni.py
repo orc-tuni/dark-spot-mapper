@@ -13,10 +13,10 @@ MOUNTPOINT = "/media/lab/tuni"
 
 
 def yesno() -> bool:
-    res = input()
+    res = input()  # nosec
     while res not in ["y", "n"]:
         print("Please input y or n")
-        res = input()
+        res = input()  # nosec
 
     if res == "y":
         return True
@@ -29,7 +29,7 @@ def yesno() -> bool:
 def mount():
     print("Please input credentials for mounting the network drive")
     print("Username: ", end="")
-    username = input()
+    username = input()  # nosec
 
     proc = subprocess.Popen(
         ["sshfs", f"{username}@ssh.intra.tut.fi:/", MOUNTPOINT],
@@ -64,11 +64,11 @@ def main():
     res = ""
     while res != "u":
         print("Enter u to unmount the drive")
-        res = input()
+        res = input()  # nosec
     unmount()
 
     print("Ready. Press enter to exit")
-    input()
+    input()  # nosec
 
 
 if __name__ == "__main__":
