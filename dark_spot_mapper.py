@@ -553,6 +553,7 @@ class DSM:
             cmdstr += chip_path + "/*8.png -geometry +760+1520 -composite "
             cmdstr += chip_path + "/*9.png -geometry +1520+1520 -composite "
             cmdstr += chip_path + "/" + chip_name + "_" + self.__time_str + "_stitch.png"
+            # TODO: Replace this with a subprocess call
             os.system(cmdstr)
             self.__stitch_lock.release()
 
@@ -570,6 +571,7 @@ class DSM:
             cmdstr += chip_path + "/*2.png -geometry +760+1520 -composite "
             cmdstr += chip_path + "/*1.png -geometry +1520+1520 -composite "
             cmdstr += chip_path + "/" + chip_name + "_" + self.__timestring + "_stitch.png"
+            # TODO: Replace this with a subprocess call
             os.system(cmdstr)
             """
 
@@ -670,6 +672,7 @@ class DSM:
         cmdstr += directory + "/*8.png -geometry +760+1520 -composite "
         cmdstr += directory + "/*9.png -geometry +1520+1520 -composite "
         cmdstr += directory + "/" + basename + "_" + self.__time_str + "_" + stitch_name + "_stitch.png"
+        # TODO: Replace this with a subprocess call
         os.system(cmdstr)
         self.__stitch_lock.release()
         logger.info("Stitch %s ready", stitch_name)
@@ -779,6 +782,7 @@ class DSM:
             cmdstr += wafer_path + "/10x-10/*stitch.png -geometry +8700+7740 -composite "
             cmdstr += wafer_path + "/00x-20/*stitch.png -geometry +5800+10320 -composite "
             cmdstr += wafer_path + "/" + wafer_name + "_" + self.__time_str + "_stitch.png"
+            # TODO: Replace this with a subprocess call
             os.system(cmdstr)
             self.__stitch_lock.release()
             logger.info("Stitch of %s ready", wafer_name)

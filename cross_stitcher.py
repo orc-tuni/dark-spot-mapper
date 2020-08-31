@@ -33,6 +33,7 @@ def main():
         cmdstr += wafer_path + "/10x-10/*stitch.png -geometry +8700+7740 -composite "
         cmdstr += wafer_path + "/00x-20/*stitch.png -geometry +5800+10320 -composite "
         cmdstr += wafer_path + "/WAFER_stitch.png"
+        # TODO: Replace this with a subprocess call
         os.system(cmdstr)
         print("Stitch ready")
 
