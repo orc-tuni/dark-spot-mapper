@@ -1,0 +1,76 @@
+name: CI
+on: [ push, pull_request ]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Python
+      uses: actions/setup-python@v2
+    - name: Print Python version
+      run: python -V
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Load pip cache
+      uses: actions/cache@v2
+      with:
+        path: .pip
+        key: pip-${{ runner.os }}-${{ hashFiles('src/requirements.txt') }}
+        restore-keys: |
+          pip-${{ runner.os }}-
+          pip-
+    - name: Install requirements
+      run: |
+        pip --cache-dir=.pip install --upgrade pip
+        pip --cache-dir=.pip install -r requirements.txt
+    - name: Run Pylint
+      run: pylint devices tests cross_stitcher.py dark_spot_mapper.py dark_spot_mapper2.py dsm_exceptions.py dsm_gui.py mount_tuni.py pyqtgraph_examples.py stagecontrol.py 2>&1 | tee pylint.txt
+    - name: Upload results
+      uses: actions/upload-artifact@v2
+      with:
+        name: Lint
+        path: |
+          pylint.txt
+        if-no-files-found: error
+  fossa:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Python
+      uses: actions/setup-python@v2
+    - name: Print Python version
+      run: python -V
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Load pip cache
+      uses: actions/cache@v2
+      with:
+        path: .pip
+        key: pip-${{ runner.os }}-${{ hashFiles('src/requirements.txt') }}
+        restore-keys: |
+          pip-${{ runner.os }}-
+          pip-
+    - name: Install requirements
+      run: |
+        pip --cache-dir=.pip install --upgrade pip
+        pip --cache-dir=.pip install -r src/requirements.txt
+    - name: Install FOSSA
+      run: |
+        curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | bash
+    - name: Run FOSSA
+      run: fossa analyze
+      env:
+        FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - uses: AppThreat/sast-scan-action@master
+      with:
+        output: reports
+        type: bash,python
+    - name: Upload results
+      uses: actions/upload-artifact@v2
+      with:
+        name: sast-scan-reports
+        path: reports
+        if-no-files-found: error
