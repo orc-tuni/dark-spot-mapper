@@ -1,5 +1,7 @@
 # Dark Spot Mapper
 
+![CI](https://github.com/orc-tuni/dark-spot-mapper/workflows/CI/badge.svg)
+![CodeQL](https://github.com/orc-tuni/dark-spot-mapper/workflows/CodeQL/badge.svg)
 [![pipeline status](https://gitlab.com/orc-tuni/dark-spot-mapper/badges/master/pipeline.svg)](https://gitlab.com/orc-tuni/dark-spot-mapper/-/commits/master)
 [![coverage report](https://gitlab.com/orc-tuni/dark-spot-mapper/badges/master/coverage.svg)](https://gitlab.com/orc-tuni/dark-spot-mapper/-/commits/master)
 
