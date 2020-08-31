@@ -3,6 +3,8 @@
 [![pipeline status](https://gitlab.com/orc-tuni/dark-spot-mapper/badges/master/pipeline.svg)](https://gitlab.com/orc-tuni/dark-spot-mapper/-/commits/master)
 [![coverage report](https://gitlab.com/orc-tuni/dark-spot-mapper/badges/master/coverage.svg)](https://gitlab.com/orc-tuni/dark-spot-mapper/-/commits/master)
 
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git.svg?type=large)](https://app.fossa.com/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git?ref=badge_large)
+
 Dark Spot Mapper is a measurement system for imaging laser wafers and samples.
 It consists of a camera and a three-axis linear stage system.
 
