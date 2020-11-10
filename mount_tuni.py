@@ -7,7 +7,8 @@ so this script no longer works.
 """
 
 import os
-import subprocess
+# Usage of the subprocess module is necessary
+import subprocess   # nosec
 
 MOUNTPOINT = "/media/lab/tuni"
 
@@ -31,7 +32,8 @@ def mount():
     print("Username: ", end="")
     username = input()  # nosec
 
-    proc = subprocess.Popen(
+    proc = subprocess.Popen(  # nosec
+        # Passing of user-given parameters is ok, as their usage is explicit
         ["sshfs", f"{username}@ssh.intra.tut.fi:/", MOUNTPOINT],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -41,7 +43,7 @@ def mount():
 
 def unmount():
     print("Unmounting")
-    subprocess.run(["fusermount", "-u", MOUNTPOINT])
+    subprocess.run(["fusermount", "-u", MOUNTPOINT])  # nosec
     print("Unmounted")
 
 
