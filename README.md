@@ -2,10 +2,9 @@
 
 ![CI](https://github.com/orc-tuni/dark-spot-mapper/workflows/CI/badge.svg)
 ![CodeQL](https://github.com/orc-tuni/dark-spot-mapper/workflows/CodeQL/badge.svg)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git.svg?type=shield)](https://app.fossa.com/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git?ref=badge_shield)
 [![pipeline status](https://gitlab.com/orc-tuni/dark-spot-mapper/badges/master/pipeline.svg)](https://gitlab.com/orc-tuni/dark-spot-mapper/-/commits/master)
 [![coverage report](https://gitlab.com/orc-tuni/dark-spot-mapper/badges/master/coverage.svg)](https://gitlab.com/orc-tuni/dark-spot-mapper/-/commits/master)
-
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git.svg?type=large)](https://app.fossa.com/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git?ref=badge_large)
 
 Dark Spot Mapper is a measurement system for imaging laser wafers and samples.
 It consists of a camera and a three-axis linear stage system.
@@ -68,3 +67,6 @@ If you have compiled the Linux binaries with Alpine and you run them on Ubuntu,
 you have to install the package "musl-dev".
 You will also have to manually create a symlink with
 `sudo ln -s /usr/lib/x86_64-linux-musl/libc.so /usr/lib/libc.musl-x86_64.so.1`.
+
+## Licensing
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git.svg?type=large)](https://app.fossa.com/projects/custom%2B5825%2Fgit%40github.com%3Aorc-tuni%2Fdark-spot-mapper.git?ref=badge_large)
